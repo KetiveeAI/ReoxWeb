@@ -5,9 +5,12 @@ The official website for the Reox programming language ("The Native Language of 
 ## ✨ Features
 
 - **Modern Landing Page**: High-performance, dark-themed design with glassmorphism.
+- **Documentation**: Comprehensive API reference, guides, and syntax overview (`/docs`).
+- **Package Registry**: Visual interface for exploring Reox ecosystem libraries (`/packages`).
+- **Blog**: News, release notes, and tutorials (`/blog`).
+- **Download Center**: Installation instructions for multiple platforms (`/download`).
 - **Code Preview**: Interactive syntax highlighting visualization.
 - **Responsive**: Optimized for all device sizes.
-- **Features & Comparison**: Detailed breakdown of Reox vs C++/Python/Swift.
 - **License Page**: Integrated Apache 2.0 license info.
 
 ## 🚀 Getting Started
@@ -24,8 +27,7 @@ bun install
 
 ### Running Locally
 
-> [!WARNING]
-> **Dev Server Limitation**: Running `bun run dev` currently crashes on some systems due to an OS file watch limit (`ENOSPC`) with Turbopack.
+> [!WARNING] > **Dev Server Limitation**: Running `bun run dev` currently crashes on some systems due to an OS file watch limit (`ENOSPC`) with Turbopack.
 > **Workaround**: Use the production build command below, which bypasses the watcher limit.
 
 To run the site locally on port **4000**:
