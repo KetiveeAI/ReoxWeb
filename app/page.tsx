@@ -1,26 +1,30 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-between bg-background grid-bg selection:bg-primary/30">
 
       {/* Navigation */}
-      <nav className="w-full glass fixed top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl mt-0 md:mt-4 md:rounded-2xl border-white/5">
-        <div className="flex items-center gap-3">
-          <Image src="/icon.png" alt="Reox Logo" width={32} height={32} />
+      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 group">
+          <div className="relative w-8 h-8 transition-transform group-hover:scale-110 duration-300">
+            <Image src="/logo.svg" alt="Reox Logo" fill className="object-contain" />
+          </div>
           <span className="font-bold text-xl tracking-tight">Reox</span>
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-          <a href="#features" className="hover:text-white transition-colors">Features</a>
-          <a href="#docs" className="hover:text-white transition-colors">Documentation</a>
-          <a href="#community" className="hover:text-white transition-colors">Community</a>
+          <Link href="/docs" className="hover:text-white transition-colors">Documentation</Link>
+          <Link href="/packages" className="hover:text-white transition-colors">Packages</Link>
+          <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+          <Link href="/community" className="hover:text-white transition-colors">Community</Link>
         </div>
-        <a
-          href="#download"
+        <Link
+          href="/download"
           className="bg-white text-black px-5 py-2 rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors"
         >
           Get Started
-        </a>
+        </Link>
       </nav>
 
       <main className="flex flex-col items-center justify-center w-full max-w-7xl px-6 pt-32 pb-16">
@@ -48,12 +52,12 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
-            <button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-primary/20">
+            <Link href="/download" className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-primary/20 flex items-center justify-center">
               Download Reox 1.0
-            </button>
-            <button className="glass hover:bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg transition-all">
+            </Link>
+            <Link href="/docs" className="glass hover:bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg transition-all flex items-center justify-center">
               Read the Docs
-            </button>
+            </Link>
           </div>
         </section>
 
