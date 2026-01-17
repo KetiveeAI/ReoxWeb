@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="https://reox.neolyx.os">Website</a> •
-  <a href="https://reox.neolyx.os/docs">Documentation</a> •
-  <a href="https://reox.neolyx.os/packages">Packages</a> •
-  <a href="https://reox.neolyx.os/blog">Blog</a>
+  <a href="https://reox.ketivee.com">Website</a> •
+  <a href="https://reox.ketivee.com/docs">Documentation</a> •
+  <a href="https://reox.ketivee.com/packages">Packages</a> •
+  <a href="https://reox.ketivee.com/blog">Blog</a>
 </p>
 
 ---
