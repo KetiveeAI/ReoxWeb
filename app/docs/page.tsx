@@ -16,11 +16,11 @@ export default function DocsHome() {
           <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors">Quick Start</h3>
           <p className="text-sm text-gray-500">Get the Reox compiler installed and run your first "Hello World".</p>
         </a>
-        
+
         <a href="/docs/syntax" className="glass p-6 rounded-xl hover:bg-white/5 transition-colors group border border-white/10 hover:border-purple-500/30">
           <div className="text-3xl mb-4">📝</div>
           <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors">Language Guide</h3>
-          <p className="text-sm text-gray-500">Master the syntax: structs, pattern matching, short functions, and more.</p>
+          <p className="text-sm text-gray-500">Master the syntax: structs, pattern matching, async/await, error handling, and more.</p>
         </a>
 
         <a href="/docs/components" className="glass p-6 rounded-xl hover:bg-white/5 transition-colors group border border-white/10 hover:border-green-500/30">
@@ -82,6 +82,11 @@ export default function DocsHome() {
                 <td className="p-4 text-gray-300">Compilation</td>
                 <td className="p-4 font-medium text-white">LLVM Native</td>
                 <td className="p-4">LLVM Native</td>
+              </tr>
+              <tr>
+                <td className="p-4 text-gray-300">Async/Await</td>
+                <td className="p-4 font-medium text-white">Native (`async fn`)</td>
+                <td className="p-4">Native (`async`)</td>
               </tr>
               <tr>
                 <td className="p-4 text-gray-300">Memory Safety</td>

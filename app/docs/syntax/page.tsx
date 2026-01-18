@@ -86,6 +86,56 @@ export default function SyntaxDocs() {
         </div>
       </section>
 
+      <section className="space-y-4 pt-4">
+        <h2 className="text-2xl font-semibold text-gray-200">Async/Await</h2>
+        <p className="text-gray-400">
+          Reox supports asynchronous programming with <code>async fn</code> and <code>await</code> expressions for non-blocking operations.
+        </p>
+        <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
+          <pre className="text-sm font-mono text-gray-300">
+            <code>
+              <span className="text-gray-500">// Async function declaration</span>{"\n"}
+              <span className="text-purple-400">async fn</span> <span className="text-yellow-300">fetch_data</span>(<span className="text-blue-300">url</span>: <span className="text-cyan-300">string</span>) {`->`} <span className="text-cyan-300">string</span> <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-purple-400">let</span> <span className="text-blue-300">response</span>: <span className="text-cyan-300">string</span> = <span className="text-purple-400">await</span> <span className="text-yellow-300">http_get</span>(url);{"\n"}
+              {"    "}<span className="text-purple-400">return</span> response;{"\n"}
+              <span className="text-white">{`}`}</span>{"\n\n"}
+              <span className="text-gray-500">// Calling async function</span>{"\n"}
+              <span className="text-purple-400">async fn</span> <span className="text-yellow-300">main</span>() <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-purple-400">let</span> <span className="text-blue-300">data</span> = <span className="text-purple-400">await</span> <span className="text-yellow-300">fetch_data</span>(<span className="text-green-400">"https://api.example.com"</span>);{"\n"}
+              {"    "}<span className="text-cyan-300">print</span>(data);{"\n"}
+              <span className="text-white">{`}`}</span>
+            </code>
+          </pre>
+        </div>
+      </section>
+
+      <section className="space-y-4 pt-4">
+        <h2 className="text-2xl font-semibold text-gray-200">Error Handling</h2>
+        <p className="text-gray-400">
+          Swift-style error handling with <code>guard</code>, <code>try/catch</code>, and <code>defer</code> for cleanup.
+        </p>
+        <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
+          <pre className="text-sm font-mono text-gray-300">
+            <code>
+              <span className="text-gray-500">// Guard for early exit</span>{"\n"}
+              <span className="text-purple-400">guard</span> user != <span className="text-purple-400">nil</span> <span className="text-purple-400">else</span> <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-purple-400">return</span>;{"\n"}
+              <span className="text-white">{`}`}</span>{"\n\n"}
+              <span className="text-gray-500">// Defer for cleanup</span>{"\n"}
+              <span className="text-purple-400">defer</span> <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-yellow-300">close_connection</span>();{"\n"}
+              <span className="text-white">{`}`}</span>{"\n\n"}
+              <span className="text-gray-500">// Try/catch for exceptions</span>{"\n"}
+              <span className="text-purple-400">try</span> <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-yellow-300">risky_operation</span>();{"\n"}
+              <span className="text-white">{`}`}</span> <span className="text-purple-400">catch</span> err <span className="text-white">{`{`}</span>{"\n"}
+              {"    "}<span className="text-cyan-300">print</span>(<span className="text-green-400">"Error occurred"</span>);{"\n"}
+              <span className="text-white">{`}`}</span>
+            </code>
+          </pre>
+        </div>
+      </section>
+
       <div className="pt-8 flex justify-between border-t border-white/5 mt-8">
         <a href="/docs/quickstart" className="text-primary hover:text-blue-400 font-medium">← Back to Quick Start</a>
         <a href="/docs/stdlib" className="text-primary hover:text-blue-400 font-medium">Next: Standard Library →</a>
