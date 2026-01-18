@@ -138,7 +138,7 @@ export default function SyntaxDocs() {
 
       <div className="pt-8 flex justify-between border-t border-white/5 mt-8">
         <a href="/docs/quickstart" className="text-primary hover:text-blue-400 font-medium">← Back to Quick Start</a>
-        <a href="/docs/stdlib" className="text-primary hover:text-blue-400 font-medium">Next: Standard Library →</a>
+        <a href="/docs/control-flow" className="text-primary hover:text-blue-400 font-medium">Next: Control Flow →</a>
       </div>
     </div>
   );

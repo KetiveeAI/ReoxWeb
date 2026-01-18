@@ -42,12 +42,13 @@ export default function DocsLayout({
                 <li><Link href="/docs/quickstart" className="block hover:text-white transition-colors">Quick Start</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-sm text-gray-200 mb-3 uppercase tracking-wider">Language Guide</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><Link href="/docs/syntax" className="block hover:text-white transition-colors">Syntax Basics</Link></li>
-                <li><Link href="/docs/state" className="block hover:text-white transition-colors">State & Binding</Link></li>
+                <li><Link href="/docs/control-flow" className="block hover:text-white transition-colors">Control Flow</Link></li>
+                <li><Link href="/docs/running-code" className="block hover:text-white transition-colors">Running Code</Link></li>
                 <li><Link href="/docs/ai" className="block hover:text-white transition-colors text-purple-400">AI Features</Link></li>
               </ul>
             </div>
