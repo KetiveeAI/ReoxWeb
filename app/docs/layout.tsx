@@ -39,6 +39,7 @@ export default function DocsLayout({
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><Link href="/docs" className="block text-primary hover:text-blue-400">Introduction</Link></li>
                 <li><Link href="/docs/installation" className="block hover:text-white transition-colors">Installation</Link></li>
+                <li><Link href="/docs/updating" className="block hover:text-white transition-colors">Updating</Link></li>
                 <li><Link href="/docs/quickstart" className="block hover:text-white transition-colors">Quick Start</Link></li>
               </ul>
             </div>
