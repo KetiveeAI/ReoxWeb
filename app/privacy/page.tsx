@@ -27,6 +27,17 @@ export default function PrivacyPage() {
                                 how we collect, use, and safeguard information when you use the Reox compiler,
                                 website, and related services.
                             </p>
+                            <p className="mt-3">
+                                For the complete Reox privacy policy, please visit our official policy page:{" "}
+                                <a
+                                    href="https://policy.ketivee.com/reox"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    policy.ketivee.com/reox
+                                </a>
+                            </p>
                         </section>
 
                         <section>
