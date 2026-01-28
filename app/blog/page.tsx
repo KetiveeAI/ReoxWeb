@@ -4,6 +4,14 @@ import Image from "next/image";
 export default function BlogPage() {
   const posts = [
     {
+      slug: "reox-ui-framework",
+      title: "Reox UI Framework: SwiftUI for NeolyxOS",
+      date: "January 29, 2026",
+      excerpt: "Introducing a complete UI framework with declarative widgets, theme colors, animation easing, and seamless NeolyxOS integration.",
+      author: "Swanaya Gupta",
+      category: "Feature"
+    },
+    {
       slug: "reox-cross-platform-release",
       title: "Reox Goes Cross-Platform: Download for Windows, macOS & Linux",
       date: "January 18, 2026",
