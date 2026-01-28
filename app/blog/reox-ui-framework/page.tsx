@@ -44,7 +44,7 @@ export default function ReoxUIFrameworkPage() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-                        Reox UI Framework: <span className="text-gradient">SwiftUI for NeolyxOS</span>
+                        Reox UI Framework: <span className="text-gradient">Native UIs for NeolyxOS</span>
                     </h1>
 
                     <p className="text-xl text-gray-400 leading-relaxed">
@@ -75,7 +75,7 @@ export default function ReoxUIFrameworkPage() {
                         <div className="glass p-6 rounded-xl border border-white/10 mb-8">
                             <h3 className="text-xl font-semibold mb-4 text-purple-300">Write UI Simply</h3>
                             <p className="text-gray-300 mb-4">
-                                Create NeolyxOS apps with SwiftUI-like syntax that compiles directly to optimized C code:
+                                Create NeolyxOS apps with declarative syntax that compiles directly to optimized C code:
                             </p>
                             <pre className="bg-black/50 p-4 rounded-lg overflow-x-auto text-sm">
                                 <code className="text-gray-300">{`// Reox UI Code
