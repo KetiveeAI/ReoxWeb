@@ -5,7 +5,7 @@ export default function BlogPage() {
   const posts = [
     {
       slug: "reox-ui-framework",
-      title: "Reox UI Framework: SwiftUI for NeolyxOS",
+      title: "Reox UI Framework: Building Native UIs for NeolyxOS",
       date: "January 29, 2026",
       excerpt: "Introducing a complete UI framework with declarative widgets, theme colors, animation easing, and seamless NeolyxOS integration.",
       author: "Swanaya Gupta",

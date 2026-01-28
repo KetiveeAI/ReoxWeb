@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
-const GITHUB_RELEASE_URL = "https://github.com/KetiveeAI/reox/releases/latest";
-const VERSION = "0.5.0-beta";
+const GITHUB_RELEASE_URL = "https://github.com/KetiveeAI/Reox/releases";
+const VERSION = "0.5.1-beta";
 
 // SVG Icons for platforms
 const WindowsIcon = () => (
@@ -75,8 +75,8 @@ const downloads = [
     platform: "Linux",
     Icon: LinuxIcon,
     arch: "x64",
-    filename: `reoxc-linux-x64`,
-    size: "~5 MB",
+    filename: `reoxc-0.5.1-beta-linux-x64.tar.gz`,
+    size: "~2.2 MB",
   },
   {
     platform: "Linux (Debian)",
@@ -260,7 +260,7 @@ export default function DownloadPage() {
           <a href={GITHUB_RELEASE_URL} className="text-primary hover:underline" target="_blank" rel="noopener">
             View all releases on GitHub →
           </a>
-          <Link href="/blog/reox-0-5-beta" className="text-primary hover:underline">
+          <Link href="/blog/reox-ui-framework" className="text-primary hover:underline">
             Read release notes →
           </Link>
           <Link href="/docs/installation" className="text-gray-400 hover:text-white">
