@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 const GITHUB_RELEASE_URL = "https://github.com/KetiveeAI/Reox/releases";
-const VERSION = "0.5.1-beta";
+const VERSION = "1.0.0";
 
 // SVG Icons for platforms
 const WindowsIcon = () => (
@@ -58,32 +58,58 @@ const CloseIcon = () => (
 
 const downloads = [
   {
-    platform: "Windows",
-    Icon: WindowsIcon,
-    arch: "x64",
-    filename: `reoxc-windows-x64.exe`,
-    size: "~8 MB",
-  },
-  {
-    platform: "macOS",
-    Icon: AppleIcon,
-    arch: "Universal (Intel + Apple Silicon)",
-    filename: `reoxc-macos-universal`,
-    size: "~6 MB",
-  },
-  {
-    platform: "Linux",
+    platform: "Linux (AppImage)",
     Icon: LinuxIcon,
     arch: "x64",
-    filename: `reoxc-0.5.1-beta-linux-x64.tar.gz`,
-    size: "~2.2 MB",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-v${VERSION}-x86_64.AppImage`,
+    filename: `reoxc-v${VERSION}-x86_64.AppImage`,
+    size: "~10 MB",
+    isLocal: false
+  },
+  {
+    platform: "macOS (DMG)",
+    Icon: AppleIcon,
+    arch: "Universal",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-v${VERSION}-macos-universal.dmg`,
+    filename: `reoxc-v${VERSION}-macos-universal.dmg`,
+    size: "~5 MB",
+    isLocal: false
+  },
+  {
+    platform: "Windows (Exe)",
+    Icon: WindowsIcon,
+    arch: "x64",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-v${VERSION}-windows-x86_64.exe`,
+    filename: `reoxc-v${VERSION}-windows-x86_64.exe`,
+    size: "2.4 MB",
+    isLocal: false
   },
   {
     platform: "Linux (Debian)",
     Icon: PackageIcon,
-    arch: "x64 .deb package",
+    arch: "x64 .deb",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc_${VERSION}_amd64.deb`,
     filename: `reoxc_${VERSION}_amd64.deb`,
     size: "~5 MB",
+    isLocal: false
+  },
+  {
+    platform: "Linux (Binary)",
+    Icon: TerminalIcon,
+    arch: "x64",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-v${VERSION}-linux-x86_64`,
+    filename: `reoxc-v${VERSION}-linux-x86_64`,
+    size: "2.4 MB",
+    isLocal: false
+  },
+  {
+    platform: "macOS (Binary)",
+    Icon: TerminalIcon,
+    arch: "Universal",
+    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-v${VERSION}-macos-universal`,
+    filename: `reoxc-v${VERSION}-macos-universal`,
+    size: "2.4 MB",
+    isLocal: false
   },
 ];
 
@@ -162,7 +188,7 @@ export default function DownloadPage() {
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl">
             Install the native declarative UI language for NeolyxOS.
             <br className="hidden md:block" />
-            Available for Windows, macOS, and Linux.
+            First official release out of beta.
           </p>
         </div>
 
@@ -173,7 +199,8 @@ export default function DownloadPage() {
             {downloads.map((dl) => (
               <a
                 key={dl.filename}
-                href={`${GITHUB_RELEASE_URL}/download/v${VERSION}/${dl.filename}`}
+                href={dl.href}
+                download={dl.isLocal ? dl.filename : undefined}
                 className="glass p-6 rounded-xl border border-white/10 hover:border-primary/50 transition-all hover:scale-[1.02] group flex items-center gap-4"
               >
                 <div className="text-gray-400 group-hover:text-primary transition-colors">
@@ -239,7 +266,7 @@ export default function DownloadPage() {
             </p>
 
             <div className="bg-[#0d0f16] p-4 rounded-lg border border-white/10 group-hover:border-purple-500/30 transition-colors overflow-x-auto">
-              <code className="text-purple-400 font-mono text-sm">curl -fsSL https://reox.dev/install.sh | sh</code>
+              <code className="text-purple-400 font-mono text-sm">curl -fsSL https://reox.ketivee.com/install.sh | sh</code>
             </div>
           </div>
 
