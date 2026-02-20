@@ -53,7 +53,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Link href="/download" className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-primary/20 flex items-center justify-center">
-              Download Reox 1.0
+              Download Reox
             </Link>
             <Link href="/docs" className="glass hover:bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg transition-all flex items-center justify-center">
               Read the Docs

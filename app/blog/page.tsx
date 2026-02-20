@@ -27,30 +27,7 @@ export default function BlogPage() {
       author: "Swanaya Gupta",
       category: "Release"
     },
-    {
-      slug: "reox-1-0-release",
-      title: "Announcing Reox 1.0",
-      date: "January 15, 2026",
-      excerpt: "The first stable release of the Reox programming language is here, featuring a native compiler, declarative UI, and zero-overhead abstractions.",
-      author: "Swanaya Gupta",
-      category: "Release"
-    },
-    {
-      slug: "why-declarative-ui",
-      title: "Why Declarative UI Matters for OS Development",
-      date: "January 10, 2026",
-      excerpt: "Exploring the benefits of state-driven UI paradigms in system-level applications and how Reox implements them natively.",
-      author: "Neolyx Team",
-      category: "Engineering"
-    },
-    {
-      slug: "ai-in-reox",
-      title: "Building AI-First Apps with Reox",
-      date: "January 5, 2026",
-      excerpt: "How to leverage the built-in AI assistant capabilities in Reox to create intelligent, context-aware applications.",
-      author: "Ketivee AI",
-      category: "Tutorial"
-    }
+
   ];
 
   return (
