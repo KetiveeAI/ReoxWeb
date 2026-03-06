@@ -52,3 +52,21 @@ export async function getUserProfile(accessToken: string): Promise<UserProfile> 
   }
   return res.json();
 }
+
+export async function getUserProfileFromAccounts(accessToken: string) {
+  const accountsUrl = process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:8956';
+  const res = await fetch(`${accountsUrl}/api/auth/profile`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    console.error('Failed to get from Accounts API:', await res.text());
+    return null;
+  }
+  
+  const data = await res.json();
+  if (data.success && data.profile) {
+    return data.profile;
+  }
+  return null;
+}

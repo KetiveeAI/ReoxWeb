@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { exchangeCodeForToken, getUserProfile } from '@/app/lib/auth';
+import { exchangeCodeForToken, getUserProfile, getUserProfileFromAccounts } from '@/app/lib/auth';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
@@ -18,7 +18,26 @@ export async function GET(request: Request) {
   try {
     const redirectUri = `${url.origin}/auth/callback`;
     const tokens = await exchangeCodeForToken(code, redirectUri);
-    const user = await getUserProfile(tokens.access_token);
+    const basicUser = await getUserProfile(tokens.access_token);
+    
+    // Attempt to fetch globally synced user profile from the Ketivee Accounts service
+    let globalAvatar = basicUser.avatar || basicUser.firstName[0];
+    let globalName = `${basicUser.firstName} ${basicUser.lastName}`.trim();
+
+    try {
+       const accountsProfile = await getUserProfileFromAccounts(tokens.access_token);
+       if (accountsProfile) {
+          if (accountsProfile.avatar) {
+             // For local development, point back to the Accounts dev server explicitly if it's a relative path
+             globalAvatar = accountsProfile.avatar.startsWith('/') 
+                 ? `${process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:8956'}${accountsProfile.avatar}`
+                 : accountsProfile.avatar;
+          }
+          if (accountsProfile.profile?.displayName) globalName = accountsProfile.profile.displayName;
+       }
+    } catch (e) {
+       console.warn('Silent skip: Accounts global profile unretrievable', e);
+    }
 
     const cookieStore = await cookies();
     
@@ -42,10 +61,10 @@ export async function GET(request: Request) {
 
     // Store minimal user info encoded in a generic cookie for frontend display
     cookieStore.set('reox_user', JSON.stringify({
-      id: user.id,
-      name: `${user.firstName} ${user.lastName}`.trim(),
-      avatar: user.avatar || user.firstName[0],
-      email: user.email,
+      id: basicUser.id,
+      name: globalName,
+      avatar: globalAvatar,
+      email: basicUser.email,
     }), {
       httpOnly: false, // Accessible by frontend JS for display
       secure: process.env.NODE_ENV === 'production',

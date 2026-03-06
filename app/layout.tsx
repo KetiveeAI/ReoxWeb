@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "The modern, declarative UI framework language for NeolyxOS. Simpler than C++, Safer than C, AI-Native.",
 };
 
+import MobileNav from "./components/MobileNav";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground font-sans`}
       >
         {children}
+        <MobileNav />
       </body>
     </html>
   );
