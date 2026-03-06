@@ -2,6 +2,9 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 export async function query(text: string, params?: unknown[]) {
@@ -32,6 +35,7 @@ export async function ensureCommunityTables() {
     CREATE TABLE IF NOT EXISTS community_replies (
       id SERIAL PRIMARY KEY,
       discussion_id INT NOT NULL REFERENCES community_discussions(id) ON DELETE CASCADE,
+      parent_id INT REFERENCES community_replies(id) ON DELETE CASCADE,
       author TEXT NOT NULL,
       avatar TEXT NOT NULL DEFAULT '',
       content TEXT NOT NULL,
@@ -39,6 +43,13 @@ export async function ensureCommunityTables() {
       likes_count INT DEFAULT 0
     )
   `);
+
+  // Migration for existing tables
+  try {
+    await query(`ALTER TABLE community_replies ADD COLUMN parent_id INT REFERENCES community_replies(id) ON DELETE CASCADE;`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
 }
 
 export default pool;

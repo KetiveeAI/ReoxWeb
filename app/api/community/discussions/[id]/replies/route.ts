@@ -27,7 +27,7 @@ export async function POST(
     await ensureCommunityTables();
     const { id } = await params;
     const body = await request.json();
-    const { author, content } = body;
+    const { author, content, parent_id } = body;
 
     if (!author || !content) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -36,10 +36,10 @@ export async function POST(
     const avatar = author.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
     const result = await query(
-      `INSERT INTO community_replies (discussion_id, author, avatar, content)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO community_replies (discussion_id, parent_id, author, avatar, content)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [id, author, avatar, content]
+      [id, parent_id || null, author, avatar, content]
     );
 
     await query(

@@ -1,12 +1,25 @@
 import { NextResponse } from 'next/server';
 import { query, ensureCommunityTables } from '@/app/lib/db';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await ensureCommunityTables();
-    const result = await query(
-      'SELECT * FROM community_discussions ORDER BY created_at DESC'
-    );
+    
+    const { searchParams } = new URL(request.url);
+    const q = searchParams.get('q');
+    
+    let result;
+    if (q) {
+      result = await query(
+        'SELECT * FROM community_discussions WHERE title ILIKE $1 OR content ILIKE $1 ORDER BY created_at DESC',
+        [`%${q}%`]
+      );
+    } else {
+      result = await query(
+        'SELECT * FROM community_discussions ORDER BY created_at DESC'
+      );
+    }
+    
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch discussions:', error);

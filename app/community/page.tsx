@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import EmojiPicker from 'emoji-picker-react';
+import { Theme } from 'emoji-picker-react';
+import gsap from 'gsap';
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -60,6 +63,17 @@ function LiveIcon({ className }: { className?: string }) {
   );
 }
 
+function SmileIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className || "w-5 h-5"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+      <line x1="9" y1="9" x2="9.01" y2="9"></line>
+      <line x1="15" y1="9" x2="15.01" y2="9"></line>
+    </svg>
+  );
+}
+
 interface Discussion {
   id: number;
   author: string;
@@ -75,6 +89,7 @@ interface Discussion {
 interface Reply {
   id: number;
   discussion_id: number;
+  parent_id: number | null;
   author: string;
   avatar: string;
   content: string;
@@ -94,17 +109,26 @@ export default function CommunityPage() {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'discussion' });
   const [authorName, setAuthorName] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [newReply, setNewReply] = useState('');
+  const [replyToParentId, setReplyToParentId] = useState<number | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showEmojiPickerId, setShowEmojiPickerId] = useState<string | null>(null);
 
-  const fetchDiscussions = useCallback(async () => {
+  const onEmojiClickReply = (emojiData: any) => {
+    setNewReply(prev => prev + emojiData.emoji);
+    setShowEmojiPickerId(null);
+  };
+
+  const fetchDiscussions = useCallback(async (queryParam = searchQuery) => {
     try {
-      const res = await fetch('/api/community/discussions');
+      const qs = queryParam ? `?q=${encodeURIComponent(queryParam)}` : '';
+      const res = await fetch(`/api/community/discussions${qs}`);
       if (res.ok) {
         const data = await res.json();
         setDiscussions(data);
@@ -114,14 +138,21 @@ export default function CommunityPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchDiscussions();
     const saved = localStorage.getItem('reox-author');
     if (saved) setAuthorName(saved);
-  }, [fetchDiscussions]);
+  }, []); // Only initial mount, let debounce handle the rest
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchDiscussions();
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, fetchDiscussions]);
+  
   const fetchReplies = async (discussionId: number) => {
     try {
       const res = await fetch(`/api/community/discussions/${discussionId}/replies`);
@@ -161,7 +192,7 @@ export default function CommunityPage() {
     }
   };
 
-  const handleSubmitReply = async (e: React.FormEvent) => {
+  const handleSubmitReply = async (e: React.FormEvent, parentId: number | null) => {
     e.preventDefault();
     if (!newReply.trim() || !authorName.trim() || !selectedDiscussion || submitting) return;
 
@@ -170,11 +201,12 @@ export default function CommunityPage() {
       const res = await fetch(`/api/community/discussions/${selectedDiscussion.id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: authorName, content: newReply }),
+        body: JSON.stringify({ author: authorName, content: newReply, parent_id: parentId }),
       });
       if (res.ok) {
         localStorage.setItem('reox-author', authorName);
         setNewReply('');
+        setReplyToParentId(null);
         await fetchReplies(selectedDiscussion.id);
         await fetchDiscussions();
       }
@@ -182,6 +214,18 @@ export default function CommunityPage() {
       console.error('Failed to reply:', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleReplyLike = async (replyId: number) => {
+    try {
+      const res = await fetch(`/api/community/replies/${replyId}/like`, { method: 'PUT' });
+      if (res.ok) {
+        const data = await res.json();
+        setReplies(prev => prev.map(r => r.id === replyId ? { ...r, likes_count: data.likes } : r));
+      }
+    } catch (err) {
+      console.error('Failed to like reply:', err);
     }
   };
 
@@ -284,110 +328,99 @@ export default function CommunityPage() {
             </div>
           </a>
 
-          <a href="https://x.com/ketiveeai" target="_blank" className="glass p-5 rounded-xl border border-white/10 hover:border-blue-400/50 transition-all group flex items-center gap-4">
+          <a href="https://x.com/reoxlang" target="_blank" className="glass p-5 rounded-xl border border-white/10 hover:border-blue-400/50 transition-all group flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
               <TwitterIcon className="w-6 h-6 text-blue-400" />
             </div>
             <div>
-              <h4 className="font-semibold group-hover:text-blue-400 transition-colors">Follow @KetiveeAI</h4>
+              <h4 className="font-semibold group-hover:text-blue-400 transition-colors">Follow @reoxlang</h4>
               <p className="text-sm text-gray-500">News &amp; updates</p>
             </div>
           </a>
         </div>
 
-        {/* Community Forum */}
-        <div className="w-full glass rounded-2xl border border-white/10 overflow-hidden">
-
-          {/* Forum Header */}
-          <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-              <h2 className="text-xl font-bold">Community Discussions</h2>
-              <span className="text-sm text-gray-500">({filteredDiscussions.length})</span>
+        {/* Main Layout Block */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start w-full cursor-default">
+          
+          {/* Discourse-Style Sidebar (Visible only on lg) */}
+          <div className="hidden lg:flex w-64 flex-col gap-6 sticky top-24 flex-shrink-0 animate-fade-in-up">
+            <div>
+               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Categories</h3>
+               <div className="space-y-1">
+                 {CATEGORIES.map(cat => (
+                   <button
+                     key={cat.id}
+                     onClick={() => { setSelectedCategory(cat.id); setSelectedDiscussion(null); setShowNewPostForm(false); }}
+                     className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                         selectedCategory === cat.id && !selectedDiscussion && !showNewPostForm
+                         ? 'bg-primary/20 text-primary border border-primary/30'
+                         : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
+                       }`}
+                   >
+                     <div className="flex items-center gap-3">
+                       <div className={`w-3 h-3 rounded-full bg-${cat.color}-500/50 border border-${cat.color}-500/30`} />
+                       {cat.label}
+                     </div>
+                   </button>
+                 ))}
+               </div>
             </div>
-
-            <button
-              onClick={() => setShowNewPostForm(!showNewPostForm)}
-              className="bg-primary text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-primary/80 transition-colors flex items-center gap-2"
-            >
-              <span>+</span> New Discussion
-            </button>
           </div>
 
-          {/* New Post Form */}
-          {showNewPostForm && (
-            <div className="p-6 border-b border-white/10 bg-white/5">
-              <form onSubmit={handleSubmitPost} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Discussion title"
-                  value={newPost.title}
-                  onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
-                  required
-                />
-                <textarea
-                  placeholder="What would you like to discuss?"
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none resize-none"
-                  required
-                />
-                <div className="flex items-center gap-4">
-                  <select
-                    value={newPost.category}
-                    onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
-                    className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:border-primary/50 focus:outline-none"
-                  >
-                    <option value="question">Question</option>
-                    <option value="discussion">Discussion</option>
-                    <option value="showcase">Showcase</option>
-                  </select>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="bg-primary text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-primary/80 transition-colors flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <SendIcon className="w-4 h-4" /> {submitting ? 'Posting...' : 'Post'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPostForm(false)}
-                    className="text-gray-500 hover:text-white px-4 py-2"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+          {/* Community Forum Column */}
+          <div className="flex-1 w-full glass rounded-2xl border border-white/10 overflow-hidden">
+            
+            {/* Forum Header */}
+            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                <h2 className="text-xl font-bold hidden sm:block">Live Discussions</h2>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="flex-1 max-w-md relative mx-4 w-full">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                 </div>
+                 <input 
+                   type="text" 
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   placeholder="Search discussions..." 
+                   className="w-full bg-black/40 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
+                 />
+              </div>
+
+              {!selectedDiscussion && (
+                <button
+                  onClick={() => setShowNewPostForm(!showNewPostForm)}
+                  className="bg-primary text-white px-5 py-2 rounded-full font-medium text-sm hover:bg-primary/80 transition-colors flex items-center gap-2 flex-shrink-0"
+                >
+                  <span className="font-bold text-lg">+</span> New Post
+                </button>
+              )}
             </div>
-          )}
 
-          {/* Category Filter */}
-          <div className="p-4 border-b border-white/10 flex gap-2 overflow-x-auto">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCategory === cat.id
-                    ? 'bg-primary text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                  }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Loading State */}
+            {/* Mobile Categories Navbar (Hidden on lg) */}
+            {!selectedDiscussion && !showNewPostForm && (
+              <div className="p-4 border-b border-white/10 flex lg:hidden gap-2 overflow-x-auto bg-black/20">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                        selectedCategory === cat.id
+                        ? 'bg-primary text-white'
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                      }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* New Post Form */}
           {loading ? (
             <div className="p-12 text-center text-gray-500">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -422,49 +455,127 @@ export default function CommunityPage() {
 
               {/* Replies */}
               <div className="border-t border-white/10 pt-6">
-                <h4 className="font-semibold mb-4">Replies ({replies.length})</h4>
+                <h4 className="font-semibold mb-6 text-lg">Replies ({replies.length})</h4>
 
-                <div className="space-y-4 mb-6">
-                  {replies.map(reply => (
-                    <div key={reply.id} className="bg-white/5 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-bold">
-                          {reply.avatar}
+                <div className="space-y-6 mb-8">
+                  {/* Threaded Comment Renderer */}
+                  {(() => {
+                    const renderThread = (parentId: number | null, depth = 0) => {
+                      const threadReplies = replies.filter(r => (r.parent_id || null) === parentId);
+                      if (threadReplies.length === 0) return null;
+
+                      return (
+                        <div className={`space-y-4 ${depth > 0 ? 'ml-6 border-l-2 border-white/10 pl-4 mt-4' : ''}`}>
+                          {threadReplies.map(reply => (
+                            <div key={reply.id} className="group animate-in fade-in duration-300">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                                  {reply.avatar}
+                                </div>
+                                <div className="flex-1 min-w-0 bg-white/5 rounded-2xl rounded-tl-sm p-4 border border-white/5 hover:border-white/10 transition-colors">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-sm text-white">{reply.author}</span>
+                                      <span className="text-gray-500 text-xs">{formatTime(reply.created_at)}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{reply.content}</p>
+                                  
+                                  {/* Reply Actions */}
+                                  <div className="mt-3 flex items-center gap-4">
+                                    <button 
+                                      onClick={(e) => {
+                                        const btn = e.currentTarget;
+                                        gsap.fromTo(btn, { scale: 0.8 }, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' });
+                                        handleReplyLike(reply.id);
+                                      }}
+                                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-pink-400 transition-colors group-hover:text-gray-400"
+                                    >
+                                      ♥ {reply.likes_count || 0}
+                                    </button>
+                                    <button 
+                                      onClick={() => setReplyToParentId(replyToParentId === reply.id ? null : reply.id)}
+                                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-white transition-colors group-hover:text-gray-400"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                      Reply
+                                    </button>
+                                  </div>
+
+                                  {/* Nested Reply Form */}
+                                  {replyToParentId === reply.id && (
+                                    <div className="mt-4 animate-in slide-in-from-top-2">
+                                      <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, reply.id); }} className="flex flex-col gap-3 relative">
+                                        <div className="flex gap-3">
+                                          <input type="text" placeholder="Name" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="w-1/3 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
+                                          <div className="flex-1 relative">
+                                            <input type="text" placeholder={`Reply to ${reply.author}...`} value={newReply} onChange={(e) => setNewReply(e.target.value)} className="w-full px-3 py-2 pl-3 pr-10 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
+                                            <button type="button" onClick={() => setShowEmojiPickerId(showEmojiPickerId === `nested-${reply.id}` ? null : `nested-${reply.id}`)} className="absolute right-2 top-1.5 text-gray-400 hover:text-white transition-colors"><SmileIcon /></button>
+                                            {showEmojiPickerId === `nested-${reply.id}` && (
+                                              <div className="absolute z-50 bottom-full right-0 mb-2">
+                                                <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed)} lazyLoadEmojis />
+                                              </div>
+                                            )}
+                                          </div>
+                                          <button type="submit" disabled={submitting} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 text-sm font-medium">Post</button>
+                                        </div>
+                                      </form>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              {/* Recursive Call */}
+                              {renderThread(reply.id, depth + 1)}
+                            </div>
+                          ))}
                         </div>
-                        <span className="font-medium text-sm">{reply.author}</span>
-                        <span className="text-gray-500 text-xs">{formatTime(reply.created_at)}</span>
-                      </div>
-                      <p className="text-gray-300 text-sm whitespace-pre-wrap">{reply.content}</p>
-                    </div>
-                  ))}
+                      );
+                    };
+                    return renderThread(null);
+                  })()}
                 </div>
 
-                {/* Reply Form */}
-                <form onSubmit={handleSubmitReply} className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Your name"
-                    value={authorName}
-                    onChange={(e) => setAuthorName(e.target.value)}
-                    className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none w-40"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Write a reply..."
-                    value={newReply}
-                    onChange={(e) => setNewReply(e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
-                  >
-                    <SendIcon className="w-4 h-4" />
-                  </button>
-                </form>
+                {/* Main Thread Reply Form */}
+                <div className="bg-white/5 rounded-xl p-5 border border-white/10 relative">
+                  <h4 className="text-sm font-semibold mb-3 text-white">Leave a reply to discussion</h4>
+                  <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, null); }} className="flex flex-col gap-3">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Your name"
+                        value={authorName}
+                        onChange={(e) => setAuthorName(e.target.value)}
+                        className="w-1/3 px-4 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
+                        required
+                      />
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          placeholder="Write a reply..."
+                          value={newReply}
+                          onChange={(e) => setNewReply(e.target.value)}
+                          className="w-full px-4 py-2.5 pl-4 pr-12 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
+                          required
+                        />
+                        <button type="button" onClick={() => setShowEmojiPickerId(showEmojiPickerId === 'main' ? null : 'main')} className="absolute right-3 top-2.5 text-gray-400 hover:text-white transition-colors"><SmileIcon /></button>
+                        {showEmojiPickerId === 'main' && (
+                          <div className="absolute z-50 bottom-full right-0 mb-2">
+                            <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed)} lazyLoadEmojis />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary/80 transition-colors disabled:opacity-50"
+                      >
+                        Reply
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           ) : filteredDiscussions.length === 0 ? (
@@ -511,6 +622,7 @@ export default function CommunityPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
 
         {/* Resources */}
