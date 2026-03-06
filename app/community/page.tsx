@@ -111,7 +111,7 @@ export default function CommunityPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'discussion' });
-  const [authorName, setAuthorName] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [newReply, setNewReply] = useState('');
@@ -143,10 +143,21 @@ export default function CommunityPage() {
     }
   }, [searchQuery]);
 
+  const fetchSession = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          setCurrentUser(data.user);
+        }
+      }
+    } catch(err) {}
+  };
+
   useEffect(() => {
     fetchDiscussions();
-    const saved = localStorage.getItem('reox-author');
-    if (saved) setAuthorName(saved);
+    fetchSession();
     
     try {
       const savedLikedD = JSON.parse(localStorage.getItem('reox-liked-discussions') || '[]');
@@ -156,6 +167,37 @@ export default function CommunityPage() {
     } catch (e) {
       // ignore
     }
+
+    // Subscribe to silent real-time updates via Server-Sent Events (SSE)
+    const eventSource = new EventSource('/api/community/stream');
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'new_discussion') {
+          setDiscussions(prev => {
+            // Check for duplicates
+            if (prev.some(d => d.id === payload.data.id)) return prev;
+            return [payload.data, ...prev];
+          });
+        } else if (payload.type === 'new_reply') {
+          // If viewing this specific discussion, inject it live
+          setReplies(prev => {
+             if (prev.some(r => r.id === payload.data.id)) return prev;
+             return [...prev, payload.data];
+          });
+          // Also bump the count on discussions list silently
+          setDiscussions(prev => prev.map(d => 
+             d.id === parseInt(payload.discussionId) 
+             ? { ...d, replies_count: (d.replies_count || 0) + 1 } 
+             : d
+          ));
+        }
+      } catch (err) {}
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []); // Only initial mount, let debounce handle the rest
 
   useEffect(() => {
@@ -180,19 +222,31 @@ export default function CommunityPage() {
     ? discussions
     : discussions.filter(d => d.category === selectedCategory);
 
+  const handleLogin = () => {
+    const clientId = 'ketivee-reoxweb';
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:5689';
+    window.location.href = `${authUrl}/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/me', { method: 'POST' });
+    setCurrentUser(null);
+    window.location.reload();
+  };
+
   const handleSubmitPost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPost.title.trim() || !newPost.content.trim() || !authorName.trim() || submitting) return;
+    if (!newPost.title.trim() || !newPost.content.trim() || !currentUser || submitting) return;
 
     setSubmitting(true);
     try {
       const res = await fetch('/api/community/discussions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: authorName, ...newPost }),
+        body: JSON.stringify({ author: currentUser.name, ...newPost }),
       });
       if (res.ok) {
-        localStorage.setItem('reox-author', authorName);
         setNewPost({ title: '', content: '', category: 'discussion' });
         setShowNewPostForm(false);
         await fetchDiscussions();
@@ -206,17 +260,16 @@ export default function CommunityPage() {
 
   const handleSubmitReply = async (e: React.FormEvent, parentId: number | null) => {
     e.preventDefault();
-    if (!newReply.trim() || !authorName.trim() || !selectedDiscussion || submitting) return;
+    if (!newReply.trim() || !currentUser || !selectedDiscussion || submitting) return;
 
     setSubmitting(true);
     try {
       const res = await fetch(`/api/community/discussions/${selectedDiscussion.id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: authorName, content: newReply, parent_id: parentId }),
+        body: JSON.stringify({ author: currentUser.name, content: newReply, parent_id: parentId }),
       });
       if (res.ok) {
-        localStorage.setItem('reox-author', authorName);
         setNewReply('');
         setReplyToParentId(null);
         await fetchReplies(selectedDiscussion.id);
@@ -355,12 +408,24 @@ export default function CommunityPage() {
           <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
           <Link href="/community" className="text-white">Community</Link>
         </div>
-        <Link
-          href="/download"
-          className="bg-white text-black px-5 py-2 rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors"
-        >
-          Get Started
-        </Link>
+        {currentUser ? (
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-400">Hi, {currentUser.name}</span>
+            <button
+              onClick={handleLogout}
+              className="bg-white/10 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-white/20 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleLogin}
+            className="bg-white text-black px-5 py-2 rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors"
+          >
+            Login with Ketivee
+          </button>
+        )}
       </nav>
 
       <main className="flex flex-col items-center w-full max-w-6xl px-6 py-20">
@@ -458,12 +523,20 @@ export default function CommunityPage() {
                  />
               </div>
 
-              {!selectedDiscussion && (
+              {!selectedDiscussion && currentUser && (
                 <button
                   onClick={() => setShowNewPostForm(!showNewPostForm)}
                   className="bg-primary text-white px-5 py-2 rounded-full font-medium text-sm hover:bg-primary/80 transition-colors flex items-center gap-2 flex-shrink-0"
                 >
                   <span className="font-bold text-lg">+</span> New Post
+                </button>
+              )}
+              {!selectedDiscussion && !currentUser && (
+                <button
+                  onClick={handleLogin}
+                  className="bg-white text-black px-5 py-2 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors flex items-center gap-2 flex-shrink-0"
+                >
+                  Login to Post
                 </button>
               )}
             </div>
@@ -488,18 +561,16 @@ export default function CommunityPage() {
             )}
             
             {/* New Post Form */}
-            {showNewPostForm && (
+            {showNewPostForm && currentUser && (
               <div className="p-6 border-b border-white/10 bg-white/5 animate-in slide-in-from-top-4">
                 <form onSubmit={handleSubmitPost} className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <input
-                      type="text"
-                      placeholder="Your name"
-                      value={authorName}
-                      onChange={(e) => setAuthorName(e.target.value)}
-                      className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
-                      required
-                    />
+                  <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white">
+                        {currentUser.avatar}
+                      </div>
+                      <span className="text-sm font-medium">{currentUser.name}</span>
+                    </div>
                     <select
                       value={newPost.category}
                       onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
@@ -627,7 +698,7 @@ export default function CommunityPage() {
                     <span>{replies.length}</span>
                     <span className="hidden sm:inline">Replies</span>
                   </button>
-                  {authorName === selectedDiscussion.author && (
+                  {currentUser?.name === selectedDiscussion.author && (
                     <button
                       onClick={() => handleDeleteDiscussion(selectedDiscussion.id)}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-colors group ml-auto"
@@ -685,7 +756,7 @@ export default function CommunityPage() {
                                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                       Reply
                                     </button>
-                                    {authorName === reply.author && (
+                                    {currentUser?.name === reply.author && (
                                       <button 
                                         onClick={() => handleDeleteReply(reply.id)}
                                         className="flex items-center gap-1.5 text-xs font-medium text-red-500/70 hover:text-red-400 transition-colors ml-auto"
@@ -696,11 +767,15 @@ export default function CommunityPage() {
                                   </div>
 
                                   {/* Nested Reply Form */}
-                                  {replyToParentId === reply.id && (
+                                  {replyToParentId === reply.id && currentUser && (
                                     <div className="mt-4 animate-in slide-in-from-top-2">
                                       <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, reply.id); }} className="flex flex-col gap-3 relative">
                                         <div className="flex gap-3">
-                                          <input type="text" placeholder="Name" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="w-1/3 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
+                                          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 border border-white/10">
+                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                                              {currentUser.avatar}
+                                            </div>
+                                          </div>
                                           <div className="flex-1 relative">
                                             <input type="text" placeholder={`Reply to ${reply.author}...`} value={newReply} onChange={(e) => setNewReply(e.target.value)} className="w-full px-3 py-2 pl-3 pr-10 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
                                             <button type="button" onClick={() => setShowEmojiPickerId(showEmojiPickerId === `nested-${reply.id}` ? null : `nested-${reply.id}`)} className="absolute right-2 top-1.5 text-gray-400 hover:text-white transition-colors"><SmileIcon /></button>
@@ -731,17 +806,16 @@ export default function CommunityPage() {
                 {/* Main Thread Reply Form */}
                 <div className="bg-white/5 rounded-xl p-5 border border-white/10 relative">
                   <h4 className="text-sm font-semibold mb-3 text-white">Leave a reply to discussion</h4>
-                  <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, null); }} className="flex flex-col gap-3">
-                    <div className="flex gap-3">
-                      <input
-                        type="text"
-                        placeholder="Your name"
-                        value={authorName}
-                        onChange={(e) => setAuthorName(e.target.value)}
-                        className="w-1/3 px-4 py-2.5 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
-                        required
-                      />
-                      <div className="flex-1 relative">
+                  {currentUser ? (
+                    <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, null); }} className="flex flex-col gap-3">
+                      <div className="flex gap-3">
+                        <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-lg bg-black/40 border border-white/10 shrink-0">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white">
+                            {currentUser.avatar}
+                          </div>
+                          <span className="text-sm font-medium text-white">{currentUser.name}</span>
+                        </div>
+                        <div className="flex-1 relative">
                         <input
                           id="main-reply-input"
                           type="text"
@@ -763,12 +837,20 @@ export default function CommunityPage() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary/80 transition-colors disabled:opacity-50"
-                      >
-                        Reply
+                          className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary/80 transition-colors disabled:opacity-50"
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/10">
+                      <p className="text-sm text-gray-400">Join the discussion to leave a reply.</p>
+                      <button onClick={handleLogin} className="bg-white text-black px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors">
+                        Login
                       </button>
                     </div>
-                  </form>
+                  )}
                 </div>
               </div>
             </div>
