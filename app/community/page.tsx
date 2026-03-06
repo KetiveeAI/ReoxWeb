@@ -125,6 +125,9 @@ export default function CommunityPage() {
     setShowEmojiPickerId(null);
   };
 
+  const [likedDiscussions, setLikedDiscussions] = useState<Set<number>>(new Set());
+  const [likedReplies, setLikedReplies] = useState<Set<number>>(new Set());
+
   const fetchDiscussions = useCallback(async (queryParam = searchQuery) => {
     try {
       const qs = queryParam ? `?q=${encodeURIComponent(queryParam)}` : '';
@@ -144,6 +147,15 @@ export default function CommunityPage() {
     fetchDiscussions();
     const saved = localStorage.getItem('reox-author');
     if (saved) setAuthorName(saved);
+    
+    try {
+      const savedLikedD = JSON.parse(localStorage.getItem('reox-liked-discussions') || '[]');
+      setLikedDiscussions(new Set(savedLikedD));
+      const savedLikedR = JSON.parse(localStorage.getItem('reox-liked-replies') || '[]');
+      setLikedReplies(new Set(savedLikedR));
+    } catch (e) {
+      // ignore
+    }
   }, []); // Only initial mount, let debounce handle the rest
 
   useEffect(() => {
@@ -219,10 +231,23 @@ export default function CommunityPage() {
 
   const handleReplyLike = async (replyId: number) => {
     try {
-      const res = await fetch(`/api/community/replies/${replyId}/like`, { method: 'PUT' });
+      const isLiked = likedReplies.has(replyId);
+      const action = isLiked ? 'unlike' : 'like';
+
+      const res = await fetch(`/api/community/replies/${replyId}/like`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
       if (res.ok) {
         const data = await res.json();
         setReplies(prev => prev.map(r => r.id === replyId ? { ...r, likes_count: data.likes } : r));
+        
+        const newLiked = new Set(likedReplies);
+        if (isLiked) newLiked.delete(replyId);
+        else newLiked.add(replyId);
+        setLikedReplies(newLiked);
+        localStorage.setItem('reox-liked-replies', JSON.stringify(Array.from(newLiked)));
       }
     } catch (err) {
       console.error('Failed to like reply:', err);
@@ -231,17 +256,59 @@ export default function CommunityPage() {
 
   const handleLike = async (discussionId: number) => {
     try {
+      const isLiked = likedDiscussions.has(discussionId);
+      const action = isLiked ? 'unlike' : 'like';
+
       const res = await fetch(`/api/community/discussions/${discussionId}/like`, {
-        method: 'POST',
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
       });
       if (res.ok) {
         const data = await res.json();
         setDiscussions(prev => prev.map(d =>
           d.id === discussionId ? { ...d, likes_count: data.likes } : d
         ));
+        if (selectedDiscussion?.id === discussionId) {
+          setSelectedDiscussion(prev => prev ? { ...prev, likes_count: data.likes } : null);
+        }
+        
+        const newLiked = new Set(likedDiscussions);
+        if (isLiked) newLiked.delete(discussionId);
+        else newLiked.add(discussionId);
+        setLikedDiscussions(newLiked);
+        localStorage.setItem('reox-liked-discussions', JSON.stringify(Array.from(newLiked)));
       }
     } catch (err) {
       console.error('Failed to like:', err);
+    }
+  };
+
+  const handleDeleteDiscussion = async (discussionId: number) => {
+    if (!confirm('Are you sure you want to delete this discussion?')) return;
+    try {
+      const res = await fetch(`/api/community/discussions/${discussionId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDiscussions(prev => prev.filter(d => d.id !== discussionId));
+        if (selectedDiscussion?.id === discussionId) {
+          setSelectedDiscussion(null);
+          setReplies([]);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete discussion:', err);
+    }
+  };
+
+  const handleDeleteReply = async (replyId: number) => {
+    if (!confirm('Are you sure you want to delete this reply?')) return;
+    try {
+      const res = await fetch(`/api/community/replies/${replyId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setReplies(prev => prev.filter(r => r.id !== replyId));
+      }
+    } catch (err) {
+      console.error('Failed to delete reply:', err);
     }
   };
 
@@ -421,6 +488,90 @@ export default function CommunityPage() {
             )}
             
             {/* New Post Form */}
+            {showNewPostForm && (
+              <div className="p-6 border-b border-white/10 bg-white/5 animate-in slide-in-from-top-4">
+                <form onSubmit={handleSubmitPost} className="space-y-4">
+                  <div className="flex gap-4">
+                    <input
+                      type="text"
+                      placeholder="Your name"
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      className="w-1/3 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none"
+                      required
+                    />
+                    <select
+                      value={newPost.category}
+                      onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
+                      className="w-1/3 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:border-primary/50 focus:outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="question">Question</option>
+                      <option value="discussion">Discussion</option>
+                      <option value="showcase">Showcase</option>
+                    </select>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Discussion title"
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none font-medium"
+                    required
+                  />
+                  <div className="relative">
+                    <textarea
+                      placeholder="What would you like to discuss?"
+                      value={newPost.content}
+                      onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                      rows={4}
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:border-primary/50 focus:outline-none resize-none leading-relaxed pb-12"
+                      required
+                    />
+                    <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowEmojiPickerId(showEmojiPickerId === 'new-post' ? null : 'new-post')}
+                        className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                      >
+                        <SmileIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPostForm(false)}
+                        className="text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 text-sm font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50 hover:scale-105 active:scale-95"
+                      >
+                        {submitting ? (
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <SendIcon className="w-4 h-4" />
+                        )}
+                        <span>{submitting ? 'Posting...' : 'Post'}</span>
+                      </button>
+                    </div>
+                    {showEmojiPickerId === 'new-post' && (
+                      <div className="absolute z-50 bottom-full right-0 mb-2">
+                        <EmojiPicker 
+                          theme={Theme.DARK} 
+                          onEmojiClick={(ed) => {
+                            setNewPost(prev => ({ ...prev, content: prev.content + ed.emoji }));
+                            setShowEmojiPickerId(null);
+                          }} 
+                          lazyLoadEmojis 
+                        />
+                      </div>
+                    )}
+                  </div>
+                </form>
+              </div>
+            )}
+            
           {loading ? (
             <div className="p-12 text-center text-gray-500">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -451,6 +602,40 @@ export default function CommunityPage() {
                 </div>
                 <h3 className="text-2xl font-bold mb-3">{selectedDiscussion.title}</h3>
                 <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedDiscussion.content}</p>
+
+                {/* Discussion Actions */}
+                <div className="mt-6 mb-2 flex flex-wrap items-center gap-4 border-t border-white/5 pt-4">
+                  <button
+                    onClick={(e) => {
+                      const btn = e.currentTarget;
+                      gsap.fromTo(btn, { scale: 0.8 }, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' });
+                      handleLike(selectedDiscussion.id);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-medium hover:bg-white/10 transition-colors group ${likedDiscussions.has(selectedDiscussion.id) ? 'text-pink-500' : 'text-gray-300 hover:text-pink-400'}`}
+                  >
+                    <span className="group-hover:scale-125 transition-transform inline-block origin-center">♥</span> 
+                    <span className="text-gray-300">{selectedDiscussion.likes_count}</span>
+                    <span className="hidden sm:inline">Likes</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      document.getElementById('main-reply-input')?.focus();
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors group"
+                  >
+                    <ForumIcon className="w-4 h-4" /> 
+                    <span>{replies.length}</span>
+                    <span className="hidden sm:inline">Replies</span>
+                  </button>
+                  {authorName === selectedDiscussion.author && (
+                    <button
+                      onClick={() => handleDeleteDiscussion(selectedDiscussion.id)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-colors group ml-auto"
+                    >
+                      <span>Delete</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Replies */}
@@ -489,7 +674,7 @@ export default function CommunityPage() {
                                         gsap.fromTo(btn, { scale: 0.8 }, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' });
                                         handleReplyLike(reply.id);
                                       }}
-                                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-pink-400 transition-colors group-hover:text-gray-400"
+                                      className={`flex items-center gap-1.5 text-xs font-medium transition-colors group-hover:text-gray-400 ${likedReplies.has(reply.id) ? 'text-pink-500 hover:text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}
                                     >
                                       ♥ {reply.likes_count || 0}
                                     </button>
@@ -500,6 +685,14 @@ export default function CommunityPage() {
                                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                       Reply
                                     </button>
+                                    {authorName === reply.author && (
+                                      <button 
+                                        onClick={() => handleDeleteReply(reply.id)}
+                                        className="flex items-center gap-1.5 text-xs font-medium text-red-500/70 hover:text-red-400 transition-colors ml-auto"
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
                                   </div>
 
                                   {/* Nested Reply Form */}
@@ -550,6 +743,7 @@ export default function CommunityPage() {
                       />
                       <div className="flex-1 relative">
                         <input
+                          id="main-reply-input"
                           type="text"
                           placeholder="Write a reply..."
                           value={newReply}
@@ -589,33 +783,64 @@ export default function CommunityPage() {
                 <div
                   key={discussion.id}
                   onClick={() => openDiscussion(discussion)}
-                  className="p-5 hover:bg-white/5 cursor-pointer transition-colors"
+                  className="p-5 hover:bg-white/5 cursor-pointer transition-colors group"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {discussion.avatar}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    {/* Author & Avatar Area */}
+                    <div className="hidden sm:flex flex-col items-center gap-2 w-16 shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-lg font-bold shadow-lg group-hover:scale-105 transition-transform">
+                        {discussion.avatar}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${getCategoryColor(discussion.category)}`}>
+                    
+                    {/* Mobile Author area inline */}
+                    <div className="flex sm:hidden items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shrink-0">
+                        {discussion.avatar}
+                      </div>
+                      <span className="text-sm font-medium text-white">{discussion.author}</span>
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getCategoryColor(discussion.category)}`}>
                           {discussion.category}
                         </span>
-                        <h3 className="font-semibold text-white truncate">{discussion.title}</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-primary transition-colors leading-tight">
+                          {discussion.title}
+                        </h3>
                       </div>
-                      <p className="text-sm text-gray-400 line-clamp-1 mb-2">{discussion.content}</p>
+                      <p className="text-sm text-gray-400 line-clamp-2 sm:line-clamp-1 mb-2 max-w-3xl leading-relaxed">
+                        {discussion.content}
+                      </p>
+                      
                       <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>{discussion.author}</span>
-                        <span>{formatTime(discussion.created_at)}</span>
-                        <span className="flex items-center gap-1">
-                          <ForumIcon className="w-3 h-3" /> {discussion.replies_count}
+                        <span className="hidden sm:flex items-center gap-1.5 font-medium">
+                          {discussion.author}
                         </span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleLike(discussion.id); }}
-                          className="flex items-center gap-1 hover:text-pink-400 transition-colors"
-                        >
-                          ♥ {discussion.likes_count}
-                        </button>
+                        <span>{formatTime(discussion.created_at)}</span>
                       </div>
+                    </div>
+                    
+                    {/* Stats Area (Right Aligned on Desktop) */}
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 sm:gap-2 text-sm text-gray-400 sm:w-24 shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto">
+                      <div className="flex items-center gap-2" title="Replies">
+                        <ForumIcon className="w-4 h-4 opacity-70" /> 
+                        <span className="font-medium">{discussion.replies_count}</span>
+                      </div>
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const btn = e.currentTarget;
+                          gsap.fromTo(btn, { scale: 0.8 }, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' });
+                          handleLike(discussion.id); 
+                        }}
+                        className={`flex items-center gap-2 transition-colors ${likedDiscussions.has(discussion.id) ? 'text-pink-500 hover:text-pink-400' : 'hover:text-pink-400 text-gray-400'}`}
+                        title="Likes"
+                      >
+                        <span className="font-medium text-gray-400">{discussion.likes_count}</span>
+                        <span className="group-hover:scale-125 transition-transform inline-block origin-center hover:text-pink-400">♥</span>
+                      </button>
                     </div>
                   </div>
                 </div>
