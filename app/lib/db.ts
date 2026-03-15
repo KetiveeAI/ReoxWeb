@@ -58,6 +58,16 @@ export async function ensureCommunityTables() {
   try {
     await query(`ALTER TABLE community_replies ADD COLUMN author_id VARCHAR(255) DEFAULT NULL;`);
   } catch (e) {}
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS reox_users (
+      user_id VARCHAR(255) PRIMARY KEY,
+      custom_avatar_path TEXT,
+      use_custom_avatar BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    )
+  `);
 }
 
 export default pool;

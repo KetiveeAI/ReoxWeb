@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 
 const GITHUB_RELEASE_URL = "https://github.com/KetiveeAI/Reox/releases";
-const VERSION = "0.5.1-beta";
+const VERSION = "1.1.0";
 
 type DetectedOS = "linux" | "macos" | "windows" | "unknown";
 

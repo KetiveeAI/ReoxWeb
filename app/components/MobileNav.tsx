@@ -18,10 +18,9 @@ export default function MobileNav() {
   }, []);
 
   const handleLogin = () => {
-    const clientId = 'ketivee-reoxweb';
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:5689';
-    window.location.href = `${authUrl}/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+    const returnTo = encodeURIComponent(`${window.location.origin}`);
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7951';
+    window.location.href = `${authUrl}/login?returnTo=${returnTo}`;
   };
 
   const handleLogout = async () => {
@@ -59,9 +58,9 @@ export default function MobileNav() {
         </Link>
         {currentUser ? (
           <button onClick={handleLogout} className="flex flex-col items-center gap-1 group w-16">
-            <svg className="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg border border-white/20 group-hover:scale-110 transition-transform">
+              {currentUser.avatar || (currentUser.firstName ? currentUser.firstName[0].toUpperCase() : 'U')}
+            </div>
             <span className="text-[10px] text-gray-400 group-hover:text-red-400 font-medium transition-colors">Logout</span>
           </button>
         ) : (

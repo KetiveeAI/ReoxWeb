@@ -20,6 +20,25 @@ interface ReleaseVersion {
 
 const releases: ReleaseVersion[] = [
   {
+    version: "1.1.0",
+    name: "Reox 1.1.0",
+    date: "March 15, 2026",
+    tag: "v1.1.0",
+    prerelease: false,
+    highlights: [
+      "Performance improvements and stability fixes",
+      "Official 1.1.0 Release",
+    ],
+    assets: [
+      {
+        platform: "Linux (tar.gz)",
+        filename: "reoxc-1.1.0-linux-x64.tar.gz",
+        size: "2.1 MB",
+        href: `${GITHUB_RELEASE_URL}/download/v1.1.0/reoxc-1.1.0-linux-x64.tar.gz`,
+      },
+    ],
+  },
+  {
     version: "0.5.1-beta",
     name: "Reox 0.5.1-beta: UI Framework",
     date: "January 28, 2026",

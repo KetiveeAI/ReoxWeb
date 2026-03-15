@@ -15,10 +15,9 @@ export async function GET() {
 }
 
 export async function POST() {
-  // Logout route convenience
+  // Logout route convenience: clear the global SSO cookies
   const response = NextResponse.json({ success: true });
-  response.cookies.delete('access_token');
-  response.cookies.delete('refresh_token');
-  response.cookies.delete('reox_user');
+  response.cookies.delete('authToken');
+  response.cookies.delete('userInfo');
   return response;
 }

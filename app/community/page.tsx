@@ -225,7 +225,7 @@ export default function CommunityPage() {
   const handleLogin = () => {
     const clientId = 'ketivee-reoxweb';
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:5689';
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:7951';
     window.location.href = `${authUrl}/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
   };
 
@@ -409,26 +409,38 @@ export default function CommunityPage() {
           <Link href="/community" className="text-white">Community</Link>
         </div>
         {currentUser ? (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">Hi, {currentUser.name}</span>
-            <button
-              onClick={handleLogout}
-              className="bg-white/10 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-white/20 transition-colors"
-            >
-              Sign Out
-            </button>
+          <div className="relative group flex items-center gap-4">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-lg border border-white/20">
+                {currentUser.avatar || (currentUser.firstName ? currentUser.firstName[0].toUpperCase() : 'U')}
+              </div>
+              <span className="text-sm font-medium text-gray-200">Hi, {currentUser.firstName || currentUser.name}</span>
+            </div>
+            {/* Dropdown Menu */}
+            <div className="absolute top-full right-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:translate-y-0 translate-y-2 z-50">
+               <div className="bg-black/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-2 rounded-t-sm">
+                 <Link href="/settings" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                   Settings
+                 </Link>
+                 <button onClick={handleLogout} className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors mt-1">
+                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                   Sign Out
+                 </button>
+               </div>
+            </div>
           </div>
         ) : (
           <button
             onClick={handleLogin}
-            className="bg-white text-black px-5 py-2 rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors"
+            className="bg-white text-black px-5 py-2 rounded-full font-semibold text-sm hover:bg-gray-200 transition-colors pointer-events-auto"
           >
             Login with Ketivee
           </button>
         )}
       </nav>
 
-      <main className="flex flex-col items-center w-full max-w-6xl px-6 py-20">
+      <main className="flex flex-col items-center w-full max-w-6xl px-6 py-20 pb-32 md:pb-20">
 
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in-up pt-12">

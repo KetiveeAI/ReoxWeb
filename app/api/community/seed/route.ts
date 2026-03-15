@@ -32,8 +32,8 @@ The compiler generates static C callback functions like Button_on_tap(void* ctx)
     category: 'showcase',
   },
   {
-    author: 'Swanaya Gupta',
-    avatar: 'SG',
+    author: 'Ketivee',
+    avatar: 'KT',
     title: 'Welcome to Reox Community!',
     content: 'This is the official community forum for Reox developers. Ask questions, share your projects, and connect with other developers building native UIs with Reox.',
     category: 'announcement',

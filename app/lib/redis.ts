@@ -7,7 +7,7 @@ const globalForRedis = global as unknown as {
 };
 
 // Try to use the Oauth2 Redis URL if available, otherwise just default localhost
-const REDIS_URL = process.env.REDIS_URL || 'redis://192.168.0.118:6380';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 export const redisClient =
   globalForRedis.redisClient || new Redis(REDIS_URL, { lazyConnect: true });
