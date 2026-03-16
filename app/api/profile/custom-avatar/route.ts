@@ -5,7 +5,7 @@ import { getSession } from '@/app/lib/session';
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || !session.userId) {
+    if (!session || !session.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       kcd3Res = await fetch(`${kcd3Url}/v1/upload/avatar`, {
         method: 'POST',
         headers: {
-          'X-User-ID': session.userId,
+          'X-User-ID': session.id,
           // Don't forward content-type, let fetch calculate multipart boundary
         },
         body: forwardFormData
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       VALUES ($1, $2, TRUE, NOW())
       ON CONFLICT (user_id) 
       DO UPDATE SET custom_avatar_path = EXCLUDED.custom_avatar_path, use_custom_avatar = TRUE, updated_at = NOW()
-    `, [session.userId, cdnPath]);
+    `, [session.id, cdnPath]);
 
     const publicCdnUrl = process.env.KCD3_PUBLIC_URL || kcd3Url;
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || !session.userId) {
+    if (!session || !session.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest) {
       VALUES ($1, $2, NOW())
       ON CONFLICT (user_id) 
       DO UPDATE SET use_custom_avatar = EXCLUDED.use_custom_avatar, updated_at = NOW()
-    `, [session.userId, useCustom]);
+    `, [session.id, useCustom]);
 
     return NextResponse.json({ success: true, useCustom });
   } catch (error) {

@@ -7,7 +7,7 @@ const globalForRedis = global as unknown as {
 };
 
 // Try to use the Oauth2 Redis URL if available, otherwise just default localhost
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6380';
 
 export const redisClient =
   globalForRedis.redisClient || new Redis(REDIS_URL, { lazyConnect: true });
@@ -23,3 +23,12 @@ if (process.env.NODE_ENV !== 'production') {
 // Connect if not already connected
 redisClient.status === 'wait' && redisClient.connect().catch(() => console.warn('Redis pub not available.'));
 redisSubscriber.status === 'wait' && redisSubscriber.connect().catch(() => console.warn('Redis sub not available.'));
+
+// Suppress unhandled error events from ioredis to prevent global crashes
+redisClient.on('error', (err) => {
+  console.warn('[Redis pub] Connection issue:', err.message);
+});
+
+redisSubscriber.on('error', (err) => {
+  console.warn('[Redis sub] Connection issue:', err.message);
+});

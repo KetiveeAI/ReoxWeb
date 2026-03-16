@@ -2,6 +2,11 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+  host: process.env.POSTGRES_HOST,
+  port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
+  database: process.env.POSTGRES_DB,
   ssl: {
     rejectUnauthorized: false
   }
@@ -59,11 +64,16 @@ export async function ensureCommunityTables() {
     await query(`ALTER TABLE community_replies ADD COLUMN author_id VARCHAR(255) DEFAULT NULL;`);
   } catch (e) {}
 
+  try {
+    await query(`ALTER TABLE reox_users ADD COLUMN public_name VARCHAR(255);`);
+  } catch (e) {}
+
   await query(`
     CREATE TABLE IF NOT EXISTS reox_users (
       user_id VARCHAR(255) PRIMARY KEY,
       custom_avatar_path TEXT,
       use_custom_avatar BOOLEAN DEFAULT FALSE,
+      public_name VARCHAR(255),
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )

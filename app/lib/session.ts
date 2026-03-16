@@ -75,9 +75,12 @@ export async function getSession() {
     if (user && user.id) {
       try {
         const { query } = await import('@/app/lib/db');
-        const res = await query('SELECT custom_avatar_path, use_custom_avatar FROM reox_users WHERE user_id = $1', [user.id]);
+        const res = await query('SELECT custom_avatar_path, use_custom_avatar, public_name FROM reox_users WHERE user_id = $1', [user.id]);
         if (res.rows.length > 0) {
           const row = res.rows[0];
+          if (row.public_name) {
+            user.publicName = row.public_name;
+          }
           if (row.use_custom_avatar && row.custom_avatar_path) {
             const kcd3PublicUrl = process.env.KCD3_PUBLIC_URL || 'http://localhost:5662';
             user.avatar = `${kcd3PublicUrl}${row.custom_avatar_path}`;

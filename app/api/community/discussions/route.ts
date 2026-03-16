@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       `INSERT INTO community_discussions (author_id, author, avatar, title, content, category)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [session.id, session.name, avatar, title, content, category || 'discussion']
+      [session.id, session.publicName || session.name, avatar, title, content, category || 'discussion']
     );
 
     const newDiscussion = result.rows[0];

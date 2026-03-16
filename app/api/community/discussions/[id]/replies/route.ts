@@ -79,7 +79,7 @@ export async function POST(
       `INSERT INTO community_replies (discussion_id, parent_id, author_id, author, avatar, content)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [id, parent_id || null, session.id, session.name, avatar, content]
+      [id, parent_id || null, session.id, session.publicName || session.name, avatar, content]
     );
 
     await query(

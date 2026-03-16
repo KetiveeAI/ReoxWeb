@@ -34,7 +34,7 @@ export async function GET() {
       }
 
       // Handle stream teardown
-      requestAnimationFrame(() => {}); // Prevent linter errors if no other teardown needed
+      // No extra teardown needed
       return () => {
         clearInterval(keepAlive);
         redisSubscriber.off('message', subscribeListener);

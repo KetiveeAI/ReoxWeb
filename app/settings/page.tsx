@@ -7,6 +7,9 @@ import { Settings as SettingsIcon, ShieldAlert, Cpu, Bell, User } from 'lucide-r
 
 export default function SettingsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [publicName, setPublicName] = useState<string>('');
+  const [isSavingPublicName, setIsSavingPublicName] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -16,12 +19,35 @@ export default function SettingsPage() {
           const data = await res.json();
           if (data.authenticated) {
             setCurrentUser(data.user);
+            setPublicName(data.user.publicName || '');
           }
         }
       } catch(err) {}
     };
     fetchSession();
   }, []);
+
+  const savePublicName = async () => {
+    setIsSavingPublicName(true);
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/profile/public-name', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicName })
+      });
+      if (res.ok) {
+        setCurrentUser((prev: any) => ({ ...prev, publicName }));
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setSaveError(errData.error || 'Failed to save public name.');
+      }
+    } catch(err) {
+      setSaveError('Network error saving public name.');
+    } finally {
+      setIsSavingPublicName(false);
+    }
+  };
 
   const handleLogin = () => {
     const returnTo = encodeURIComponent(`${window.location.origin}`);
@@ -133,6 +159,33 @@ export default function SettingsPage() {
                    <p className="text-xs text-yellow-500/80 mt-2 flex items-center gap-1">
                      <ShieldAlert className="w-3 h-3" /> Managed globally via Ketivee SSO Auth.
                    </p>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-300 mb-2">Public Name (Optional)</label>
+                   <div className="flex gap-2">
+                     <input 
+                       type="text" 
+                       value={publicName} 
+                       onChange={(e) => setPublicName(e.target.value)} 
+                       placeholder="e.g., Mysterio"
+                       className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 transition-colors" 
+                     />
+                     <button
+                       onClick={savePublicName}
+                       disabled={isSavingPublicName || publicName === (currentUser?.publicName || '')}
+                       className="bg-primary/20 text-primary px-6 py-3 rounded-xl font-bold hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                     >
+                       {isSavingPublicName ? 'Saving...' : 'Save'}
+                     </button>
+                   </div>
+                   <p className="text-xs text-gray-400 mt-2">
+                     If set, this name will be shown instead of your legal first name across the Reox community.
+                   </p>
+                   {saveError && (
+                     <p className="text-sm text-red-400 mt-2 font-medium bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20">
+                       {saveError}
+                     </p>
+                   )}
                  </div>
                  <div className="pt-4 border-t border-white/5">
                    <a 
