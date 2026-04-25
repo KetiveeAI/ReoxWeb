@@ -21,7 +21,7 @@ export default function UIConstructsDocs() {
         <h2 className="text-2xl font-semibold text-gray-200">Variant (Tagged Unions)</h2>
         <p className="text-gray-400">
           <code>variant</code> declares a type-safe enumeration with optional associated data.
-          Similar to Rust&apos;s <code>enum</code> or Swift&apos;s <code>enum</code> with associated values.
+          Similar to Rust&apos;s <code>enum</code> with associated values.
         </p>
         <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
           <pre className="text-sm font-mono text-gray-300">

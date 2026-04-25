@@ -4,6 +4,14 @@ import Image from "next/image";
 export default function BlogPage() {
   const posts = [
     {
+      slug: "reox-1-1-release",
+      title: "Reox v1.1.1: Ergonomics, Interpolation & Stability",
+      date: "April 25, 2026",
+      excerpt: "Introducing first-class string interpolation, top-level global variables, binary literals, and tightened mutability enforcement in the type checker.",
+      author: "Swanaya Gupta",
+      category: "Release"
+    },
+    {
       slug: "reox-ui-framework",
       title: "Reox UI Framework: Building Native UIs for NeolyxOS",
       date: "January 29, 2026",

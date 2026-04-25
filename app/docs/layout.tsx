@@ -30,9 +30,9 @@ export default function DocsLayout({
         </Link>
       </nav>
 
-      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+      <div className="flex flex-1 max-w-7xl mx-auto w-full pt-28">
         {/* Sidebar */}
-        <aside className="w-64 hidden md:block border-r border-white/10 pt-8 pb-10 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <aside className="w-64 hidden md:block border-r border-white/10 pt-4 pb-10 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
           <div className="px-6 space-y-8">
             <div>
               <h4 className="font-semibold text-sm text-gray-200 mb-3 uppercase tracking-wider">Getting Started</h4>

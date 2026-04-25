@@ -19,7 +19,7 @@
 
 ## About Reox
 
-**Reox** is a modern, statically-typed programming language built for **NeolyxOS**. It combines the simplicity of Swift with the low-level control of C, featuring a unique **AI-native** syntax and a **declarative UI** framework for building native desktop applications.
+**Reox** is a modern, statically-typed programming language built for **NeolyxOS**. It combines high-level simplicity with the low-level control of C, featuring a unique **AI-native** syntax and a **declarative UI** framework for building native desktop applications.
 
 ### Key Language Features
 

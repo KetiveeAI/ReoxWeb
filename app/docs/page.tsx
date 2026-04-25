@@ -77,7 +77,7 @@ export default function DocsHome() {
   return (
     <div className="space-y-12 animate-fade-in">
       <div>
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4 h-14">
+        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4 pb-2">
           Documentation
         </h1>
         <p className="text-xl text-gray-400 leading-relaxed">
@@ -174,68 +174,7 @@ export default function DocsHome() {
         </div>
       </div>
 
-      {/* Comparison Table */}
-      <div className="pt-8 border-t border-white/5">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-          <svg className="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 3h5v5" />
-            <path d="M8 3H3v5" />
-            <path d="M21 3l-7 7" />
-            <path d="M3 3l7 7" />
-            <path d="M16 21h5v-5" />
-            <path d="M8 21H3v-5" />
-            <path d="M21 21l-7-7" />
-            <path d="M3 21l7-7" />
-          </svg>
-          Reox vs Swift
-        </h2>
-        <p className="text-gray-400 mb-6">
-          Reox is heavily inspired by Swift, adapting its best ideas for the NeolyxOS ecosystem.
-        </p>
-        <div className="glass rounded-xl overflow-hidden border border-white/10">
-          <table className="w-full text-left text-sm md:text-base">
-            <thead className="bg-white/5 text-gray-200 font-semibold border-b border-white/10">
-              <tr>
-                <th className="p-4">Feature</th>
-                <th className="p-4 text-purple-400">Reox</th>
-                <th className="p-4 text-orange-400">Swift</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 text-gray-400">
-              <tr>
-                <td className="p-4 text-gray-300">Target OS</td>
-                <td className="p-4 font-medium text-white">NeolyxOS</td>
-                <td className="p-4">macOS / iOS</td>
-              </tr>
-              <tr>
-                <td className="p-4 text-gray-300">UI Framework</td>
-                <td className="p-4 font-medium text-white">Native Syntax (ReoxUI)</td>
-                <td className="p-4">SwiftUI (Library)</td>
-              </tr>
-              <tr>
-                <td className="p-4 text-gray-300">AI Integration</td>
-                <td className="p-4 font-medium text-white">Native Keywords (`ai`)</td>
-                <td className="p-4">CoreML Libraries</td>
-              </tr>
-              <tr>
-                <td className="p-4 text-gray-300">Compilation</td>
-                <td className="p-4 font-medium text-white">C Transpile → Native</td>
-                <td className="p-4">LLVM Native</td>
-              </tr>
-              <tr>
-                <td className="p-4 text-gray-300">Async/Await</td>
-                <td className="p-4 font-medium text-white">Native (`async fn`)</td>
-                <td className="p-4">Native (`async`)</td>
-              </tr>
-              <tr>
-                <td className="p-4 text-gray-300">Memory Safety</td>
-                <td className="p-4 font-medium text-white">Yes (Ownership)</td>
-                <td className="p-4">Yes (ARC)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </div>
   );
 }

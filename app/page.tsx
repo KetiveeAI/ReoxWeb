@@ -136,23 +136,21 @@ export default function Home() {
                   <th className="p-4 font-bold text-primary">Reox</th>
                   <th className="p-4 font-medium hidden sm:table-cell">C++</th>
                   <th className="p-4 font-medium hidden sm:table-cell">Python</th>
-                  <th className="p-4 font-medium hidden sm:table-cell">Swift</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {[
-                  ["UI Syntax", "Native", "Library", "Library", "Native"],
-                  ["Performance", "System", "System", "Interpreted", "System"],
-                  ["Simplicity", "High", "Low", "High", "High"],
-                  ["AI Native", "Yes", "No", "Libraries", "CoreML"],
-                  ["Target OS", "NeolyxOS", "Any", "Any", "macOS"],
-                ].map(([feat, reox, cpp, py, swift], i) => (
+                  ["UI Syntax", "Native", "Library", "Library"],
+                  ["Performance", "System", "System", "Interpreted"],
+                  ["Simplicity", "High", "Low", "High"],
+                  ["AI Native", "Yes", "No", "Libraries"],
+                  ["Target OS", "NeolyxOS", "Any", "Any"],
+                ].map(([feat, reox, cpp, py], i) => (
                   <tr key={i} className="hover:bg-white/5 transition-colors">
                     <td className="p-4 font-medium text-gray-300">{feat}</td>
                     <td className="p-4 text-primary font-bold">{reox}</td>
                     <td className="p-4 text-gray-500 hidden sm:table-cell">{cpp}</td>
                     <td className="p-4 text-gray-500 hidden sm:table-cell">{py}</td>
-                    <td className="p-4 text-gray-500 hidden sm:table-cell">{swift}</td>
                   </tr>
                 ))}
               </tbody>

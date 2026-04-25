@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 
 const GITHUB_RELEASE_URL = "https://github.com/KetiveeAI/Reox/releases";
-const VERSION = "1.1.0";
+const VERSION = "1.1.1";
 
 type DetectedOS = "linux" | "macos" | "windows" | "unknown";
 
@@ -72,34 +72,44 @@ interface Download {
 
 const downloads: Download[] = [
   {
-    platform: "Linux (tar.gz)",
+    platform: "Linux (AppImage)",
     Icon: LinuxIcon,
-    arch: "x64",
-    href: `${GITHUB_RELEASE_URL}/download/v${VERSION}/reoxc-${VERSION}-linux-x64.tar.gz`,
-    filename: `reoxc-${VERSION}-linux-x64.tar.gz`,
-    size: "2.1 MB",
+    arch: "x86_64",
+    href: `/downloads/v${VERSION}/reoxc-v${VERSION}-x86_64.AppImage`,
+    filename: `reoxc-v${VERSION}-x86_64.AppImage`,
+    size: "2.54 MB",
     os: "linux",
     available: true
   },
   {
-    platform: "macOS",
-    Icon: AppleIcon,
-    arch: "Universal",
-    href: GITHUB_RELEASE_URL,
-    filename: "",
-    size: "Coming soon",
-    os: "macos",
-    available: false
+    platform: "Linux (.deb)",
+    Icon: LinuxIcon,
+    arch: "amd64",
+    href: `/downloads/v${VERSION}/reoxc_${VERSION}_amd64.deb`,
+    filename: `reoxc_${VERSION}_amd64.deb`,
+    size: "1.46 MB",
+    os: "linux",
+    available: true
   },
   {
-    platform: "Windows",
+    platform: "macOS (.dmg)",
+    Icon: AppleIcon,
+    arch: "Universal",
+    href: `/downloads/v${VERSION}/reoxc-v${VERSION}-macos-universal.dmg`,
+    filename: `reoxc-v${VERSION}-macos-universal.dmg`,
+    size: "2.95 MB",
+    os: "macos",
+    available: true
+  },
+  {
+    platform: "Windows (.exe)",
     Icon: WindowsIcon,
-    arch: "x64",
-    href: GITHUB_RELEASE_URL,
-    filename: "",
-    size: "Coming soon",
+    arch: "x86_64",
+    href: `/downloads/v${VERSION}/reoxc-v${VERSION}-windows-x86_64.exe`,
+    filename: `reoxc-v${VERSION}-windows-x86_64.exe`,
+    size: "3.07 MB",
     os: "windows",
-    available: false
+    available: true
   },
 ];
 
@@ -259,10 +269,10 @@ export default function DownloadPage() {
           </div>
           <div className="flex flex-col items-center gap-2 mt-6">
             <p className="text-gray-500 text-sm">
-              All downloads from{" "}
+              All binaries securely hosted on Reox servers. (Also on{" "}
               <a href={GITHUB_RELEASE_URL} className="text-primary hover:underline" target="_blank" rel="noopener">
-                GitHub Releases
-              </a>
+                GitHub
+              </a>)
             </p>
             <Link href="/download/timelapse" className="text-primary hover:underline text-sm font-medium">
               View all past versions →
@@ -326,7 +336,7 @@ export default function DownloadPage() {
           <a href={GITHUB_RELEASE_URL} className="text-primary hover:underline" target="_blank" rel="noopener">
             View all releases on GitHub →
           </a>
-          <Link href="/blog/reox-ui-framework" className="text-primary hover:underline">
+          <Link href="/blog/reox-1-1-release" className="text-primary hover:underline">
             Read release notes →
           </Link>
           <Link href="/docs/installation" className="text-gray-400 hover:text-white">

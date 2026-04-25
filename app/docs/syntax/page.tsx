@@ -23,6 +23,7 @@ export default function SyntaxDocs() {
             <code>
               <span className="text-gray-500">// ═══════════════════════════════════════</span>{"\n"}
               <span className="text-gray-500">// IMMUTABLE VARIABLES (Default)</span>{"\n"}
+              <span className="text-gray-500">// Can be declared locally or at the top-level global scope</span>{"\n"}
               <span className="text-gray-500">// ═══════════════════════════════════════</span>{"\n\n"}
               <span className="text-purple-400">let</span> <span className="text-blue-300">x</span>: <span className="text-cyan-300">int</span> = <span className="text-orange-400">42</span>;{"\n"}
               <span className="text-purple-400">let</span> <span className="text-blue-300">name</span>: <span className="text-cyan-300">string</span> = <span className="text-green-400">"Reox"</span>;{"\n"}
@@ -86,7 +87,31 @@ export default function SyntaxDocs() {
               <span className="text-purple-400">let</span> <span className="text-blue-300">nothing</span> = <span className="text-purple-400">nil</span>;               <span className="text-gray-500">// Nil (null)</span>{"\n\n"}
               <span className="text-gray-500">// Type inference</span>{"\n"}
               <span className="text-purple-400">let</span> <span className="text-blue-300">inferred</span> = <span className="text-orange-400">100</span>;             <span className="text-gray-500">// Inferred as int</span>{"\n"}
-              <span className="text-purple-400">let</span> <span className="text-blue-300">text</span> = <span className="text-green-400">"Hello"</span>;            <span className="text-gray-500">// Inferred as string</span>
+              <span className="text-purple-400">let</span> <span className="text-blue-300">text</span> = <span className="text-green-400">"Hello"</span>;            <span className="text-gray-500">// Inferred as string</span>{"\n\n"}
+              <span className="text-gray-500">// Advanced Literals</span>{"\n"}
+              <span className="text-purple-400">let</span> <span className="text-blue-300">binary_mask</span> = <span className="text-orange-400">0b1010_1100</span>; <span className="text-gray-500">// Binary literal</span>{"\n"}
+              <span className="text-purple-400">let</span> <span className="text-blue-300">hex_color</span> = <span className="text-orange-400">0xFF00FF</span>;      <span className="text-gray-500">// Hexadecimal literal</span>
+            </code>
+          </pre>
+        </div>
+      </section>
+
+      {/* Strings and Interpolation */}
+      <section className="space-y-4 pt-4">
+        <h2 className="text-2xl font-semibold text-gray-200">Strings & Interpolation</h2>
+        <p className="text-gray-400">
+          Reox features first-class string interpolation using the <code>\(expr)</code> syntax.
+        </p>
+        <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
+          <pre className="text-sm font-mono text-gray-300">
+            <code>
+              <span className="text-purple-400">let</span> <span className="text-blue-300">name</span> = <span className="text-green-400">"Alice"</span>;{"\n"}
+              <span className="text-purple-400">let</span> <span className="text-blue-300">score</span> = <span className="text-orange-400">95</span>;{"\n\n"}
+              <span className="text-gray-500">// Implicitly converts primitives to strings</span>{"\n"}
+              <span className="text-purple-400">let</span> <span className="text-blue-300">message</span> = <span className="text-green-400">"Player \(name) achieved a score of \(score)!"</span>;{"\n"}
+              <span className="text-cyan-300">print</span>(message); <span className="text-gray-500">// "Player Alice achieved a score of 95!"</span>{"\n\n"}
+              <span className="text-gray-500">// Interpolate complex expressions</span>{"\n"}
+              <span className="text-purple-400">let</span> <span className="text-blue-300">status</span> = <span className="text-green-400">"Status: \(score {'>'} 90 ? \"Winner\" : \"Runner-up\")"</span>;
             </code>
           </pre>
         </div>
