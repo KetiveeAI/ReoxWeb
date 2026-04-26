@@ -42,6 +42,38 @@ export default function InstallationDocs() {
       </section>
 
       <section className="space-y-4 pt-4">
+        <h2 className="text-2xl font-semibold text-gray-200">Updating Reox</h2>
+        <p className="text-gray-400">
+          To update your existing Reox installation to the latest version, follow the instructions for your environment.
+        </p>
+
+        <h3 className="text-lg font-medium text-gray-300 mt-4">On NeolyxOS</h3>
+        <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
+          <pre className="text-sm font-mono text-gray-300">
+            <code>
+              <span className="text-gray-500"># Update via the built-in package manager</span>{"\n"}
+              <span className="text-blue-400">$</span> reoxc pkg update reox@latest
+            </code>
+          </pre>
+        </div>
+
+        <h3 className="text-lg font-medium text-gray-300 mt-4">Manual Install (Linux / macOS)</h3>
+        <p className="text-gray-400 text-sm">
+          If you built Reox from source or downloaded the standalone binary, simply copy the newly compiled binary into your system path (overwriting the old versions):
+        </p>
+        <div className="glass bg-[#0d0f16] p-4 rounded-lg border border-white/10 overflow-x-auto">
+          <pre className="text-sm font-mono text-gray-300">
+            <code>
+              <span className="text-gray-500"># Assuming you are in the reox-lang directory</span>{"\n"}
+              <span className="text-blue-400">$</span> cargo build --release{"\n"}
+              <span className="text-blue-400">$</span> sudo cp target/release/reoxc /usr/local/bin/reoxc{"\n"}
+              <span className="text-blue-400">$</span> sudo cp target/release/reoxc /usr/local/bin/reox
+            </code>
+          </pre>
+        </div>
+      </section>
+
+      <section className="space-y-4 pt-4">
         <h2 className="text-2xl font-semibold text-gray-200">Package Manager</h2>
         <p className="text-gray-400">
           Reox comes with <code>reoxpm</code> for managing dependencies and project scaffolding.

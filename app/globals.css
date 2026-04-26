@@ -27,8 +27,59 @@
   --color-border: var(--border);
   --color-code-bg: var(--code-bg);
   
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-syne);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --animate-fade-in-up: fade-in-up 0.8s ease-out forwards;
+  --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-crossfade-out: crossfade-out 1s ease-in-out 1.2s forwards;
+  --animate-crossfade-in: crossfade-in 1s ease-in-out 1.2s forwards;
+  --animate-scan: scan 4s linear infinite;
+  
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 10px 2px var(--secondary);
+    }
+    50% {
+      opacity: .4;
+      box-shadow: 0 0 2px 0px var(--secondary);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+
+  @keyframes crossfade-out {
+    0% { opacity: 1; filter: blur(0px); }
+    100% { opacity: 0; filter: blur(4px); }
+  }
+
+  @keyframes crossfade-in {
+    0% { opacity: 0; transform: scale(0.8) rotate(-5deg); filter: blur(4px); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); filter: blur(0px); }
+  }
+
+  @keyframes scan {
+    0% { transform: translateY(-100px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(400px); opacity: 0; }
+  }
 }
 
 body {
@@ -53,8 +104,14 @@ body {
 }
 
 .grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-size: 50px 50px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at 50% 20%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 20%, black 20%, transparent 70%);
 }
