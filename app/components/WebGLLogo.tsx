@@ -9,9 +9,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── WORLD POSITIONS ──────────────────────────────────────────────────────────
-// Bird starts top-right and never overlaps body text.
-const HERO_POS = { x: 4.5,  y: 3.2,  z: -1.5 };
-const HERO_ROT = { x: 0,    y: -0.3, z: 0.06  };
+// Bird starts in the middle, filling the spacer gap.
+const HERO_POS = { x: 0,    y: 1.8,  z: 0 };
+const HERO_ROT = { x: 0.1,  y: 0,    z: 0 };
 // Nest is centred near the bottom – lives in its own scroll section.
 const NEST_POS = { x: 0,    y: -1.2, z: 0     };
 const NEST_ROT = { x: 0.1,  y: -0.1, z: 0     };
@@ -184,13 +184,24 @@ export default function WebGLLogo() {
 
         const t = progress / 0.82;
         const s = smoothstep(t);
-        vT.x    = HERO_POS.x + (NEST_POS.x - HERO_POS.x) * s;
+        
+        // Weaving motion on X axis: moves left first, then right, repeating.
+        // Amplitude is tapered by sin(t*PI) so it naturally starts at center and ends at center.
+        const waveAmplitude = Math.sin(t * Math.PI) * 4.0; 
+        const waveX = -Math.sin(t * Math.PI * 3.5) * waveAmplitude;
+        
+        vT.x    = HERO_POS.x + (NEST_POS.x - HERO_POS.x) * s + waveX;
         // Arc: rises a little then descends to nest
         vT.y    = HERO_POS.y + (NEST_POS.y - HERO_POS.y) * s + Math.sin(t * Math.PI) * 1.4;
         vT.z    = HERO_POS.z + (NEST_POS.z - HERO_POS.z) * t;
-        vT.rotY = HERO_ROT.y + (NEST_ROT.y - HERO_ROT.y) * t;
+        
+        // Add rotation to face the flight path and bank into turns
+        const turnY = -Math.cos(t * Math.PI * 3.5) * waveAmplitude * 0.25;
+        const bankZ = Math.cos(t * Math.PI * 3.5) * waveAmplitude * 0.15;
+
+        vT.rotY = HERO_ROT.y + (NEST_ROT.y - HERO_ROT.y) * t + turnY;
         vT.rotX = pitch;
-        vT.rotZ = HERO_ROT.z * (1 - t);
+        vT.rotZ = HERO_ROT.z * (1 - t) + bankZ;
 
         // Hide nest elements while flying
         const op0 = { opacity: 0, duration: 0.25 };
