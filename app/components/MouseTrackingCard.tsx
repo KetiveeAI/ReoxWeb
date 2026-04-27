@@ -50,10 +50,6 @@ export default function MouseTrackingCard({ children, className = "" }: MouseTra
       onMouseLeave={handleMouseLeave}
       className={`relative overflow-hidden rounded-2xl bg-[#0f111a]/40 backdrop-blur-2xl border border-white/5 p-8 transition-colors hover:border-secondary/30 group shadow-2xl ${className}`}
     >
-      {/* Scanner Line */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-        <div className="absolute w-[200%] h-[2px] bg-gradient-to-r from-transparent via-secondary/60 to-transparent blur-[1px] -left-1/2 animate-scan" />
-      </div>
 
       <div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 z-0"
