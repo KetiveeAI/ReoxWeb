@@ -114,14 +114,20 @@ export default function CommunityPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
+  const selectedDiscussionIdRef = useRef<number | null>(null);
   const [newReply, setNewReply] = useState('');
+  const [nestedReply, setNestedReply] = useState('');
   const [replyToParentId, setReplyToParentId] = useState<number | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showEmojiPickerId, setShowEmojiPickerId] = useState<string | null>(null);
 
-  const onEmojiClickReply = (emojiData: any) => {
-    setNewReply(prev => prev + emojiData.emoji);
+  const onEmojiClickReply = (emojiData: any, isNested: boolean) => {
+    if (isNested) {
+      setNestedReply(prev => prev + emojiData.emoji);
+    } else {
+      setNewReply(prev => prev + emojiData.emoji);
+    }
     setShowEmojiPickerId(null);
   };
 
@@ -156,6 +162,10 @@ export default function CommunityPage() {
   };
 
   useEffect(() => {
+    selectedDiscussionIdRef.current = selectedDiscussion?.id || null;
+  }, [selectedDiscussion]);
+
+  useEffect(() => {
     fetchDiscussions();
     fetchSession();
     
@@ -182,8 +192,11 @@ export default function CommunityPage() {
         } else if (payload.type === 'new_reply') {
           // If viewing this specific discussion, inject it live
           setReplies(prev => {
-             if (prev.some(r => r.id === payload.data.id)) return prev;
-             return [...prev, payload.data];
+             if (selectedDiscussionIdRef.current === parseInt(payload.discussionId)) {
+               if (prev.some(r => r.id === payload.data.id)) return prev;
+               return [...prev, payload.data];
+             }
+             return prev;
           });
           // Also bump the count on discussions list silently
           setDiscussions(prev => prev.map(d => 
@@ -260,18 +273,23 @@ export default function CommunityPage() {
 
   const handleSubmitReply = async (e: React.FormEvent, parentId: number | null) => {
     e.preventDefault();
-    if (!newReply.trim() || !currentUser || !selectedDiscussion || submitting) return;
+    const content = parentId ? nestedReply : newReply;
+    if (!content.trim() || !currentUser || !selectedDiscussion || submitting) return;
 
     setSubmitting(true);
     try {
       const res = await fetch(`/api/community/discussions/${selectedDiscussion.id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: currentUser.name, content: newReply, parent_id: parentId }),
+        body: JSON.stringify({ author: currentUser.name, content: content, parent_id: parentId }),
       });
       if (res.ok) {
-        setNewReply('');
-        setReplyToParentId(null);
+        if (parentId) {
+          setNestedReply('');
+          setReplyToParentId(null);
+        } else {
+          setNewReply('');
+        }
         await fetchReplies(selectedDiscussion.id);
         await fetchDiscussions();
       }
@@ -383,16 +401,19 @@ export default function CommunityPage() {
   const formatTime = (dateStr: string) => {
     const now = new Date();
     const diff = now.getTime() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
 
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-background grid-bg selection:bg-primary/30">
+    <div className="flex min-h-screen flex-col items-center bg-background selection:bg-primary/30 relative overflow-hidden">
+      <div className="grid-bg"></div>
 
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-4 flex items-center justify-between">
@@ -440,7 +461,7 @@ export default function CommunityPage() {
         )}
       </nav>
 
-      <main className="flex flex-col items-center w-full max-w-6xl px-6 py-20 pb-32 md:pb-20">
+      <main className="flex flex-col items-center w-full max-w-6xl px-6 py-20 pb-32 md:pb-20 relative z-10">
 
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in-up pt-12">
@@ -574,7 +595,7 @@ export default function CommunityPage() {
             
             {/* New Post Form */}
             {showNewPostForm && currentUser && (
-              <div className="p-6 border-b border-white/10 bg-white/5 animate-in slide-in-from-top-4">
+              <div className="p-6 border-b border-white/10 bg-white/5 animate-fade-in-up">
                 <form onSubmit={handleSubmitPost} className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4 items-center">
                     <div className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white flex items-center gap-3">
@@ -735,7 +756,7 @@ export default function CommunityPage() {
                       return (
                         <div className={`space-y-4 ${depth > 0 ? 'ml-6 border-l-2 border-white/10 pl-4 mt-4' : ''}`}>
                           {threadReplies.map(reply => (
-                            <div key={reply.id} className="group animate-in fade-in duration-300">
+                            <div key={reply.id} className="group animate-fade-in-up">
                               <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-bold shrink-0 mt-1">
                                   {reply.avatar}
@@ -780,7 +801,7 @@ export default function CommunityPage() {
 
                                   {/* Nested Reply Form */}
                                   {replyToParentId === reply.id && currentUser && (
-                                    <div className="mt-4 animate-in slide-in-from-top-2">
+                                    <div className="mt-4 animate-fade-in-up">
                                       <form onSubmit={(e) => { e.preventDefault(); handleSubmitReply(e, reply.id); }} className="flex flex-col gap-3 relative">
                                         <div className="flex gap-3">
                                           <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 border border-white/10">
@@ -789,11 +810,11 @@ export default function CommunityPage() {
                                             </div>
                                           </div>
                                           <div className="flex-1 relative">
-                                            <input type="text" placeholder={`Reply to ${reply.author}...`} value={newReply} onChange={(e) => setNewReply(e.target.value)} className="w-full px-3 py-2 pl-3 pr-10 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
+                                            <input type="text" placeholder={`Reply to ${reply.author}...`} value={nestedReply} onChange={(e) => setNestedReply(e.target.value)} className="w-full px-3 py-2 pl-3 pr-10 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-gray-500 focus:border-primary/50 focus:outline-none" required />
                                             <button type="button" onClick={() => setShowEmojiPickerId(showEmojiPickerId === `nested-${reply.id}` ? null : `nested-${reply.id}`)} className="absolute right-2 top-1.5 text-gray-400 hover:text-white transition-colors"><SmileIcon /></button>
                                             {showEmojiPickerId === `nested-${reply.id}` && (
                                               <div className="absolute z-50 bottom-full right-0 mb-2">
-                                                <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed)} lazyLoadEmojis />
+                                                <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed, true)} lazyLoadEmojis />
                                               </div>
                                             )}
                                           </div>
@@ -840,7 +861,7 @@ export default function CommunityPage() {
                         <button type="button" onClick={() => setShowEmojiPickerId(showEmojiPickerId === 'main' ? null : 'main')} className="absolute right-3 top-2.5 text-gray-400 hover:text-white transition-colors"><SmileIcon /></button>
                         {showEmojiPickerId === 'main' && (
                           <div className="absolute z-50 bottom-full right-0 mb-2">
-                            <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed)} lazyLoadEmojis />
+                            <EmojiPicker theme={Theme.DARK} onEmojiClick={(ed) => onEmojiClickReply(ed, false)} lazyLoadEmojis />
                           </div>
                         )}
                       </div>
