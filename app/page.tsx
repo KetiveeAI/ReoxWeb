@@ -234,12 +234,7 @@ export default function Home() {
             background: "radial-gradient(ellipse 70% 60% at 50% 100%, rgba(139,92,246,0.18) 0%, transparent 80%)",
           }}
         />
-        {/* Space for the 3D nest — the canvas bird lands into this gap */}
-        <div className="h-[280px] w-full" aria-hidden="true" />
-        <div className="text-center max-w-xl relative z-10">
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-secondary/60 mb-3">
-            Home
-          </p>
+        <div className="text-center max-w-xl relative z-0 mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Built for <span className="text-gradient">NeolyxOS</span>.
             <br />Born to fly.
@@ -249,6 +244,8 @@ export default function Home() {
             It's the language that lives where your OS breathes.
           </p>
         </div>
+        {/* Space for the 3D nest — the canvas bird lands into this gap */}
+        <div className="h-[280px] w-full" aria-hidden="true" />
       </section>
 
       {/* Footer */}
@@ -256,12 +253,13 @@ export default function Home() {
         <div className="px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Image src="/logo.svg" alt="Reox" width={24} height={24} className="grayscale opacity-50" />
-            <span className="text-gray-600 font-medium tracking-tight">Reox Compiler Infrastructure</span>
+            <span className="text-gray-600 font-medium tracking-tight">Reox</span>
           </div>
           <div className="flex gap-8 text-gray-500 text-sm">
             <a href="https://policy.ketivee.com/reox" className="hover:text-white transition-colors">Privacy</a>
             <a href="https://policy.ketivee.com/reox" className="hover:text-white transition-colors">Terms</a>
             <a href="/license" className="hover:text-white transition-colors">License</a>
+            <a href="/eula" className="hover:text-white transition-colors">EULA</a>
           </div>
           <div className="flex gap-4">
             <a href="https://github.com/ketiveeai/reox" className="opacity-50 hover:opacity-100 transition-opacity font-medium hover:text-white">

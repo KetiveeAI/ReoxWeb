@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 const HERO_POS = { x: 4.5,  y: 3.2,  z: -1.5 };
 const HERO_ROT = { x: 0,    y: -0.3, z: 0.06  };
 // Nest is centred near the bottom – lives in its own scroll section.
-const NEST_POS = { x: 0,    y: -2.9, z: 0     };
+const NEST_POS = { x: 0,    y: -1.2, z: 0     };
 const NEST_ROT = { x: 0.1,  y: -0.1, z: 0     };
 
 function smoothstep(t: number) {
@@ -103,6 +103,53 @@ export default function WebGLLogo() {
     halo.position.copy(eggMesh.position);
     nestGroup.add(halo);
 
+    // ── CYBER-NATURAL ENVIRONMENT ──────────────────────────────────────────────
+    const envGroup = new THREE.Group();
+    nestGroup.add(envGroup);
+
+    // 1. Holographic Ground Grid (a large circle grid fading out)
+    const gridHelper = new THREE.GridHelper(30, 60, 0x8b5cf6, 0x06b6d4);
+    gridHelper.position.y = -0.15;
+    const gridMat = gridHelper.material as THREE.LineBasicMaterial;
+    gridMat.transparent = true;
+    gridMat.opacity = 0;
+    
+    // Create a circular mask for the grid so it fades at the edges
+    // We achieve this by putting a plane with a radial gradient over it, or just use the grid.
+    envGroup.add(gridHelper);
+
+    // 2. Cyber Grass (Line segments)
+    const grassGeo = new THREE.BufferGeometry();
+    const grassPts = [];
+    for (let i = 0; i < 400; i++) {
+      const r = 0.8 + Math.random() * 5.0; // Stay outside the immediate nest
+      const theta = Math.random() * Math.PI * 2;
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      const height = 0.15 + Math.random() * 0.4;
+      grassPts.push(
+        new THREE.Vector3(x, -0.15, z),
+        new THREE.Vector3(x + (Math.random()-0.5)*0.3, -0.15 + height, z + (Math.random()-0.5)*0.3)
+      );
+    }
+    grassGeo.setFromPoints(grassPts);
+    const grassMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0 });
+    const grassLines = new THREE.LineSegments(grassGeo, grassMat);
+    envGroup.add(grassLines);
+
+    // 3. Holographic Spores
+    const sporeGeo = new THREE.BufferGeometry();
+    const sporePts = [];
+    for (let i = 0; i < 150; i++) {
+      sporePts.push(
+        new THREE.Vector3((Math.random() - 0.5) * 12, Math.random() * 4, (Math.random() - 0.5) * 12)
+      );
+    }
+    sporeGeo.setFromPoints(sporePts);
+    const sporeMat = new THREE.PointsMaterial({ color: 0xa855f7, size: 0.05, transparent: true, opacity: 0 });
+    const spores = new THREE.Points(sporeGeo, sporeMat);
+    envGroup.add(spores);
+
     // ── BIRD GROUP ─────────────────────────────────────────────────────────────
     const logoGroup = new THREE.Group();
     scene.add(logoGroup);
@@ -151,6 +198,9 @@ export default function WebGLLogo() {
         twigMats.forEach(m => gsap.to(m, op0));
         gsap.to(eggMat,  op0);
         gsap.to(haloMat, op0);
+        gsap.to(gridMat, op0);
+        gsap.to(grassMat, op0);
+        gsap.to(sporeMat, op0);
         gsap.to(warmLight, { intensity: t * 1.5, duration: 0.5 });
 
       } else {
@@ -175,6 +225,9 @@ export default function WebGLLogo() {
         twigMats.forEach(m => gsap.to(m, { opacity: s * 0.85, duration: 0.9 }));
         gsap.to(eggMat,    { opacity: s,           duration: 1.3 });
         gsap.to(haloMat,   { opacity: s * 0.28,    duration: 1.3 });
+        gsap.to(gridMat,   { opacity: s * 0.12,    duration: 1.5 });
+        gsap.to(grassMat,  { opacity: s * 0.4,     duration: 1.2 });
+        gsap.to(sporeMat,  { opacity: s * 0.6,     duration: 1.8 });
         gsap.to(warmLight, { intensity: 2.2,        duration: 0.8 });
 
         // Slide nest group into view
@@ -259,6 +312,14 @@ export default function WebGLLogo() {
           const pulse = 1 + Math.sin(time * 2.4) * 0.02;
           eggMesh.scale.setScalar(pulse);
           halo.scale.setScalar(1 + Math.sin(time * 2.4) * 0.045);
+
+          // Animate spores gently
+          spores.rotation.y = time * 0.05;
+          const positions = sporeGeo.attributes.position.array as Float32Array;
+          for (let i = 0; i < 150; i++) {
+            positions[i*3 + 1] += Math.sin(time * 2 + i) * 0.003;
+          }
+          sporeGeo.attributes.position.needsUpdate = true;
         }
       }
 
